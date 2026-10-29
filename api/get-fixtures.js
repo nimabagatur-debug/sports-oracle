@@ -1,5 +1,5 @@
 export default async function handler(req, res) {
-  // 1. CORS Security Headers
+  // CORS Security Headers
   res.setHeader('Access-Control-Allow-Credentials', true);
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS');
@@ -25,8 +25,8 @@ export default async function handler(req, res) {
     Provide exactly 3 upcoming ${sport} matches scheduled globally within the next ${hoursWindow} hours. 
     Ensure high-profile matches and realistic, up-to-date decimal odds.`;
 
-    // 2. Strict JSON Schema Configuration
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${geminiKey}`, {
+    // FIXED: Using the official 'gemini-1.5-flash' endpoint
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiKey}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -74,7 +74,6 @@ export default async function handler(req, res) {
 
     const fixtures = JSON.parse(candidateText);
 
-    // 3. Edge Caching - Cache the response for 10 minutes (600 seconds) to save API quota and load instantly for users
     res.setHeader('Cache-Control', 's-maxage=600, stale-while-revalidate');
     
     return res.status(200).json({ fixtures });
