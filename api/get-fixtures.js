@@ -1,4 +1,14 @@
 export default async function handler(req, res) {
+  // 1. CORS Security Headers
+  res.setHeader('Access-Control-Allow-Credentials', true);
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version');
+
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+
   const geminiKey = process.env.GEMINI_API_KEY;
 
   if (!geminiKey) {
@@ -8,13 +18,14 @@ export default async function handler(req, res) {
   const urlParams = new URL(req.url, `https://${req.headers.host}`).searchParams;
   const hoursWindow = parseInt(urlParams.get('hours')) || 24;
   const sport = urlParams.get('sport') || 'football';
+  const currentDate = new Date().toISOString();
 
   try {
-    const prompt = `Generate exactly 3 upcoming ${sport} matches scheduled within the next ${hoursWindow} hours. 
-    Return ONLY a valid JSON array. No explanations, no markdown blocks, no extra text. 
-    Each object in the array must have these exact keys:
-    "homeTeam" (string), "awayTeam" (string), "league" (string), "country" (string), "time" (string), "oddsA" (number), "oddsB" (number), "bookmaker" (string), "confidence" (string), "analysis" (string).`;
+    const prompt = `You are a professional sports data oracle. The current date and time is ${currentDate}. 
+    Provide exactly 3 upcoming ${sport} matches scheduled globally within the next ${hoursWindow} hours. 
+    Ensure high-profile matches and realistic, up-to-date decimal odds.`;
 
+    // 2. Strict JSON Schema Configuration
     const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${geminiKey}`, {
       method: 'POST',
       headers: {
@@ -25,7 +36,26 @@ export default async function handler(req, res) {
           parts: [{ text: prompt }]
         }],
         generationConfig: {
-          responseMimeType: "application/json"
+          responseMimeType: "application/json",
+          responseSchema: {
+            type: "ARRAY",
+            items: {
+              type: "OBJECT",
+              properties: {
+                homeTeam: { type: "STRING", description: "Home team name" },
+                awayTeam: { type: "STRING", description: "Away team name" },
+                league: { type: "STRING", description: "Tournament or league name" },
+                country: { type: "STRING", description: "Host country" },
+                time: { type: "STRING", description: "Time until kickoff, e.g., 'In 4 hours'" },
+                oddsA: { type: "NUMBER", description: "Decimal odds for home team to win, e.g., 2.10" },
+                oddsB: { type: "NUMBER", description: "Decimal odds for away team to win, e.g., 1.85" },
+                bookmaker: { type: "STRING", description: "Name of a major sportsbook, e.g., 'Bet365'" },
+                confidence: { type: "STRING", description: "Prediction confidence: 'High' or 'Medium'" },
+                analysis: { type: "STRING", description: "One sentence tactical analysis explaining the odds" }
+              },
+              required: ["homeTeam", "awayTeam", "league", "country", "time", "oddsA", "oddsB", "bookmaker", "confidence", "analysis"]
+            }
+          }
         }
       })
     });
@@ -42,13 +72,11 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: "Empty response from AI model." });
     }
 
-    // Safely parse JSON even if hidden characters or formatting exist
-    const jsonMatch = candidateText.match(/\[[\s\S]*\]/);
-    if (!jsonMatch) {
-      return res.status(500).json({ error: "Model failed to output a valid JSON array." });
-    }
+    const fixtures = JSON.parse(candidateText);
 
-    const fixtures = JSON.parse(jsonMatch[0]);
+    // 3. Edge Caching - Cache the response for 10 minutes (600 seconds) to save API quota and load instantly for users
+    res.setHeader('Cache-Control', 's-maxage=600, stale-while-revalidate');
+    
     return res.status(200).json({ fixtures });
 
   } catch (error) {
