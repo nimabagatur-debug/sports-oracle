@@ -1,11 +1,8 @@
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
-
   const geminiKey = process.env.GEMINI_API_KEY;
 
-  if (!geminiKey) {
-    return res.status(500).json({ error: "Server configuration error: GEMINI_API_KEY missing." });
-  }
+  if (!geminiKey) return res.status(500).json({ error: "Server error: GEMINI_API_KEY missing." });
 
   const currentDate = new Date().toISOString();
 
@@ -14,11 +11,12 @@ export default async function handler(req, res) {
     Use Google Search to find 2 to 3 REAL, upcoming sports matches (Soccer, Basketball, or Tennis) within the next 24 hours.
     Build a single "Accumulator" (Parlay) bet combining these matches. 
     CRITICAL RULES:
-    1. The picks must be highly probable, safe bets (e.g., heavy favorites to win, or very safe Over/Under lines).
+    1. The picks must be highly probable, safe bets.
     2. The individual decimal odds for each leg should be low (e.g., 1.25 to 1.50).
-    3. The TOTAL multiplied decimal odds for the entire accumulator MUST be strictly between 2.00 and 3.00.`;
+    3. The TOTAL multiplied decimal odds for the entire accumulator MUST be strictly between 2.00 and 3.00.
+    Return ONLY valid JSON, no markdown blocks.`;
 
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-pro-preview:generateContent?key=${geminiKey}`, {
+    const response = await fetch(`[https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-pro-preview:generateContent?key=$](https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-pro-preview:generateContent?key=$){geminiKey}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -38,11 +36,10 @@ export default async function handler(req, res) {
                   properties: {
                     matchup: { type: "STRING" },
                     sport: { type: "STRING" },
-                    league: { type: "STRING", description: "The specific league or tournament name (e.g., Premier League, NBA)" },
+                    league: { type: "STRING", description: "The specific league or tournament name" },
                     pick: { type: "STRING" },
                     odds: { type: "NUMBER", description: "Individual leg odds" }
                   },
-                  // Added "league" to the required fields
                   required: ["matchup", "sport", "league", "pick", "odds"]
                 }
               },
@@ -55,23 +52,19 @@ export default async function handler(req, res) {
     });
 
     const data = await response.json();
-    
-    if (data.error) {
-      return res.status(500).json({ error: data.error.message || "Gemini API Error" });
-    }
+    if (data.error) throw new Error(data.error.message || "Gemini API Error");
 
     const candidateText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+    if (!candidateText) throw new Error("Empty response from AI model.");
 
-    if (!candidateText) {
-      return res.status(500).json({ error: "Empty response from AI model." });
-    }
-
-    const accumulator = JSON.parse(candidateText);
+    // FIX: Strip Markdown block formatting from the AI response
+    const cleanText = candidateText.replace(/```json/gi, '').replace(/```/g, '').trim();
+    const accumulator = JSON.parse(cleanText);
 
     res.setHeader('Cache-Control', 's-maxage=60, stale-while-revalidate');
     return res.status(200).json(accumulator);
 
   } catch (error) {
-    return res.status(500).json({ error: "Server error: " + error.message });
+    return res.status(500).json({ error: error.message });
   }
 }
