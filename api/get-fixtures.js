@@ -12,8 +12,8 @@ export default async function handler(req, res) {
   const sport = urlParams.get('sport') || 'football';
 
   try {
-    const prompt = `Act as an expert sports analytics oracle. Generate or retrieve ${limit} realistic upcoming ${sport} matches for these tournaments: [${leagues}] scheduled within the next ${hoursWindow} hours. 
-    You MUST respond with ONLY a valid JSON array (no markdown code blocks, no extra characters, no introductory text) containing objects with these exact keys:
+    const prompt = `Act as an expert sports analytics oracle. Generate ${limit} realistic upcoming ${sport} matches for these tournaments: [${leagues}] scheduled within the next ${hoursWindow} hours. 
+    You MUST respond with ONLY a valid JSON array (no markdown code blocks like \`\`\`json, no extra text, no introductory markdown) containing objects with these exact keys:
     - "homeTeam": string (team name)
     - "awayTeam": string (team name)
     - "league": string (tournament name)
@@ -25,8 +25,7 @@ export default async function handler(req, res) {
     - "confidence": string ("High" or "Medium")
     - "analysis": string (short tactical analysis sentence)`;
 
-    // Using the correct stable Gemini 2.5 Flash endpoint
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiKey}`, {
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${geminiKey}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -50,7 +49,7 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: "Empty response received from AI model." });
     }
 
-    // Clean up markdown formatting if the model wrapped it in code blocks
+    // Clean up potential markdown formatting safely
     let cleanJsonStr = candidateText.trim();
     if (cleanJsonStr.startsWith("```json")) {
       cleanJsonStr = cleanJsonStr.replace(/^```json/, "").replace(/```$/, "").trim();
