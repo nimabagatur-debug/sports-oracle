@@ -38,10 +38,12 @@ export default async function handler(req, res) {
                   properties: {
                     matchup: { type: "STRING" },
                     sport: { type: "STRING" },
+                    league: { type: "STRING", description: "The specific league or tournament name (e.g., Premier League, NBA)" },
                     pick: { type: "STRING" },
                     odds: { type: "NUMBER", description: "Individual leg odds" }
                   },
-                  required: ["matchup", "sport", "pick", "odds"]
+                  // Added "league" to the required fields
+                  required: ["matchup", "sport", "league", "pick", "odds"]
                 }
               },
               analysis: { type: "STRING", description: "Why this combined accumulator is a high-confidence bet" }
