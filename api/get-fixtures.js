@@ -1,70 +1,46 @@
-export default async function handler(req, res) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
+// Standard Prediction Fetch
+        async function getPredictions() {
+            // Gets the sport text (e.g., "Soccer") to display it
+            const sportSelect = document.getElementById('sport-select');
+            const sportText = sportSelect.options[sportSelect.selectedIndex].text;
+            
+            const sport = sportSelect.value;
+            const market = document.getElementById('market-select').value;
+            const btn = document.getElementById('submit-btn');
+            const resultsDiv = document.getElementById('results');
+            document.getElementById('accumulator-result').innerHTML = ''; // Clear accumulator
 
-  const geminiKey = process.env.GEMINI_API_KEY;
+            btn.disabled = true;
+            btn.innerText = "Analyzing Markets...";
+            resultsDiv.innerHTML = `<div class="col-span-full text-center py-10 text-cyan-500 animate-pulse">Querying AI for ${selectedCount} ${market} picks...</div>`;
 
-  if (!geminiKey) {
-    return res.status(500).json({ error: "Server configuration error: GEMINI_API_KEY missing." });
-  }
+            try {
+                const response = await fetch(`/api/get-fixtures?sport=${encodeURIComponent(sport)}&market=${encodeURIComponent(market)}&hours=${selectedTime}&limit=${selectedCount}`);
+                const data = await response.json();
 
-  const urlParams = new URL(req.url, `https://${req.headers.host}`).searchParams;
-  const sport = urlParams.get('sport') || 'Football';
-  const market = urlParams.get('market') || 'Win / Draw';
-  const hoursWindow = parseInt(urlParams.get('hours')) || 24;
-  const limit = parseInt(urlParams.get('limit')) || 3;
-  const currentDate = new Date().toISOString();
+                if (data.error) throw new Error(data.error);
 
-  try {
-    const prompt = `You are a professional sports handicapper. The current date/time is ${currentDate}.
-    First, use Google Search to find exactly ${limit} REAL upcoming ${sport} matches scheduled globally within the next ${hoursWindow} hours.
-    Then, for EACH real match you found, provide a specific prediction exclusively for the "${market}" betting market.
-    Ensure the teams and match times are 100% accurate and real.`;
-
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-pro-preview:generateContent?key=${geminiKey}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }],
-        tools: [{ googleSearch: {} }], 
-        generationConfig: {
-          responseMimeType: "application/json",
-          responseSchema: {
-            type: "ARRAY",
-            items: {
-              type: "OBJECT",
-              properties: {
-                matchup: { type: "STRING", description: "Format: 'Team A vs Team B'" },
-                league: { type: "STRING", description: "Tournament or league name" },
-                time: { type: "STRING", description: "e.g., 'In 4 hours'" },
-                pick: { type: "STRING", description: "The specific prediction (e.g., 'Home Team -1.5', 'Over 2.5 Goals')" },
-                odds: { type: "NUMBER", description: "Realistic decimal odds for this specific pick (e.g., 1.90)" },
-                analysis: { type: "STRING", description: "One sentence explaining why this pick is valuable" }
-              },
-              required: ["matchup", "league", "time", "pick", "odds", "analysis"]
+                resultsDiv.innerHTML = data.fixtures.map(item => `
+                    <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 flex flex-col justify-between">
+                        <div>
+                            <!-- UPDATED: Now shows Sport • League • Time -->
+                            <div class="text-xs font-semibold text-slate-500 mb-2 uppercase">${sportText} • ${item.league} • ${item.time}</div>
+                            <div class="font-bold text-slate-200 text-sm mb-4">${item.matchup}</div>
+                        </div>
+                        <div class="bg-slate-950 rounded-lg p-3 border border-slate-800">
+                            <div class="text-xs text-slate-400 mb-1">Recommended Pick</div>
+                            <div class="flex justify-between items-end">
+                                <span class="text-cyan-400 font-bold">${item.pick}</span>
+                                <span class="text-slate-200 font-semibold text-sm">Odds: ${item.odds}</span>
+                            </div>
+                        </div>
+                        <p class="text-xs text-slate-400 mt-3 leading-relaxed">💡 ${item.analysis}</p>
+                    </div>
+                `).join('');
+            } catch (err) {
+                resultsDiv.innerHTML = `<div class="col-span-full text-center py-10 text-red-400">Error: ${err.message}</div>`;
+            } finally {
+                btn.disabled = false;
+                btn.innerText = "Generate Standard Predictions";
             }
-          }
         }
-      })
-    });
-
-    const data = await response.json();
-    
-    if (data.error) {
-      return res.status(500).json({ error: data.error.message || "Gemini API Error" });
-    }
-
-    const candidateText = data.candidates?.[0]?.content?.parts?.[0]?.text;
-
-    if (!candidateText) {
-      return res.status(500).json({ error: "Empty response from AI model." });
-    }
-
-    const fixtures = JSON.parse(candidateText);
-
-    res.setHeader('Cache-Control', 's-maxage=60, stale-while-revalidate');
-    return res.status(200).json({ fixtures });
-
-  } catch (error) {
-    return res.status(500).json({ error: "Server error: " + error.message });
-  }
-}
