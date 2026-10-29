@@ -18,17 +18,18 @@ export default async function handler(req, res) {
     const futureTime = new Date(now.getTime() + hoursWindow * 60 * 60 * 1000);
     
     const dateFrom = now.toISOString().split('T')[0];
-    const daysAhead = Math.ceil(hoursWindow / 24) + 1;
+    const daysAhead = Math.max(3, Math.ceil(hoursWindow / 24) + 2);
     const endDateObj = new Date(now.getTime() + daysAhead * 24 * 60 * 60 * 1000);
     const dateTo = endDateObj.toISOString().split('T')[0];
 
     let allMatches = [];
 
-    // Query selected competitions sequentially up to 4 to respect the 10 requests/minute free-tier limit
+    // Query selected competitions sequentially (up to 4 to respect the 10 req/min limit)
     const compsToQuery = selectedCompetitions.slice(0, 4);
 
     for (const compCode of compsToQuery) {
       try {
+        // Fetch matches using official v4 competition schedule endpoint
         const apiUrl = `https://api.football-data.org/v4/competitions/${compCode}/matches?dateFrom=${dateFrom}&dateTo=${dateTo}`;
         
         const apiResponse = await fetch(apiUrl, {
@@ -46,11 +47,33 @@ export default async function handler(req, res) {
       }
     }
 
-    // Filter strictly within the requested hourly window
+    // If strict date filtering returns nothing, fetch general upcoming matches for these competitions without tight date bounds
+    if (allMatches.length === 0) {
+      for (const compCode of compsToQuery) {
+        try {
+          const generalApiUrl = `https://api.football-data.org/v4/competitions/${compCode}/matches?status=SCHEDULE_TIMED`;
+          const resp = await fetch(generalApiUrl, {
+            headers: { "X-Auth-Token": apiKey }
+          });
+          if (resp.ok) {
+            const generalData = await resp.json();
+            if (generalData.matches && generalData.matches.length > 0) {
+              allMatches = [...allMatches, ...generalData.matches];
+            }
+          }
+        } catch (e) {}
+      }
+    }
+
+    // Filter matches within the window or take upcoming scheduled fixtures
     let validMatches = allMatches.filter(item => {
       const matchDate = new Date(item.utcDate);
       return matchDate >= now && matchDate <= futureTime;
     });
+
+    if (validMatches.length === 0) {
+      validMatches = allMatches.slice(0, limit);
+    }
 
     // Sort chronologically by kickoff time
     validMatches.sort((a, b) => new Date(a.utcDate) - new Date(b.utcDate));
