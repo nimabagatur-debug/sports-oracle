@@ -18,18 +18,17 @@ export default async function handler(req, res) {
     const futureTime = new Date(now.getTime() + hoursWindow * 60 * 60 * 1000);
     
     const dateFrom = now.toISOString().split('T')[0];
-    const daysAhead = Math.max(3, Math.ceil(hoursWindow / 24) + 2);
+    const daysAhead = Math.max(7, Math.ceil(hoursWindow / 24) + 3);
     const endDateObj = new Date(now.getTime() + daysAhead * 24 * 60 * 60 * 1000);
     const dateTo = endDateObj.toISOString().split('T')[0];
 
     let allMatches = [];
 
-    // Query selected competitions sequentially (up to 4 to respect the 10 req/min limit)
-    const compsToQuery = selectedCompetitions.slice(0, 4);
+    // Query selected competitions sequentially (capped at 3 to strictly respect the 10 requests/minute free-tier ceiling)
+    const compsToQuery = selectedCompetitions.slice(0, 3);
 
     for (const compCode of compsToQuery) {
       try {
-        // Fetch matches using official v4 competition schedule endpoint
         const apiUrl = `https://api.football-data.org/v4/competitions/${compCode}/matches?dateFrom=${dateFrom}&dateTo=${dateTo}`;
         
         const apiResponse = await fetch(apiUrl, {
@@ -43,15 +42,15 @@ export default async function handler(req, res) {
           }
         }
       } catch (err) {
-        // Skip individual network errors safely
+        // Skip individual network drops safely
       }
     }
 
-    // If strict date filtering returns nothing, fetch general upcoming matches for these competitions without tight date bounds
+    // If date-bounded query is empty, fallback to fetching upcoming scheduled matches for these competitions
     if (allMatches.length === 0) {
       for (const compCode of compsToQuery) {
         try {
-          const generalApiUrl = `https://api.football-data.org/v4/competitions/${compCode}/matches?status=SCHEDULE_TIMED`;
+          const generalApiUrl = `https://api.football-data.org/v4/competitions/${compCode}/matches?status=SCHEDULED,TIMED`;
           const resp = await fetch(generalApiUrl, {
             headers: { "X-Auth-Token": apiKey }
           });
@@ -65,7 +64,7 @@ export default async function handler(req, res) {
       }
     }
 
-    // Filter matches within the window or take upcoming scheduled fixtures
+    // Filter matches within the requested window, or default to the next upcoming fixtures if window is tight
     let validMatches = allMatches.filter(item => {
       const matchDate = new Date(item.utcDate);
       return matchDate >= now && matchDate <= futureTime;
@@ -78,7 +77,7 @@ export default async function handler(req, res) {
     // Sort chronologically by kickoff time
     validMatches.sort((a, b) => new Date(a.utcDate) - new Date(b.utcDate));
 
-    // Map verified live matches
+    // Map verified live matches into clean UI objects
     const fixtures = validMatches.slice(0, limit).map((item, index) => {
       const bookmaker = bookmakersList[index % bookmakersList.length];
       return {
