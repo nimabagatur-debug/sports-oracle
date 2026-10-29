@@ -20,12 +20,12 @@ export default async function handler(req, res) {
     Then, for EACH real match you found, provide a specific prediction exclusively for the "${market}" betting market.
     Ensure the teams and match times are 100% accurate and real.`;
 
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiKey}`, {
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent?key=${geminiKey}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         contents: [{ parts: [{ text: prompt }] }],
-        // 👇 THIS IS THE MAGIC FIX: Gives the AI live internet access
+        // Gives the 3.5 Lite model live internet access to fix hallucinated matches
         tools: [{ googleSearch: {} }], 
         generationConfig: {
           responseMimeType: "application/json",
@@ -37,9 +37,9 @@ export default async function handler(req, res) {
                 matchup: { type: "STRING", description: "Format: 'Team A vs Team B'" },
                 league: { type: "STRING", description: "Tournament or league name" },
                 time: { type: "STRING", description: "e.g., 'In 4 hours'" },
-                pick: { type: "STRING", description: "The specific prediction" },
-                odds: { type: "NUMBER", description: "Realistic decimal odds" },
-                analysis: { type: "STRING", description: "Why this pick is valuable" }
+                pick: { type: "STRING", description: "The specific prediction (e.g., 'Home Team -1.5', 'Over 2.5 Goals', 'Away Win')" },
+                odds: { type: "NUMBER", description: "Realistic decimal odds for this specific pick (e.g., 1.90)" },
+                analysis: { type: "STRING", description: "One sentence explaining why this pick is valuable" }
               },
               required: ["matchup", "league", "time", "pick", "odds", "analysis"]
             }
