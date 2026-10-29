@@ -3,142 +3,39 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sports Oracle AI</title>
+    <title>Sports Oracle AI | Elite Predictions</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <style>
+        /* Custom scrollbar and animations */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #020617; }
+        ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #334155; }
+        .glass-panel { background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(51, 65, 85, 0.5); }
+        .odds-btn { transition: all 0.2s ease; }
+        .odds-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(6, 182, 212, 0.2); border-color: #06b6d4; }
+    </style>
 </head>
-<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col">
+<body class="bg-[#020617] text-slate-200 min-h-screen flex flex-col bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900 via-[#020617] to-[#020617]">
 
     <!-- Header -->
-    <header class="border-b border-slate-800 bg-slate-900/50 backdrop-blur py-4 px-6 flex justify-between items-center">
-        <div>
-            <h1 class="text-xl font-bold tracking-wide text-cyan-400">Sports Oracle AI</h1>
-            <p class="text-xs text-slate-400">Lightweight Live Match Predictions & Odds</p>
+    <header class="glass-panel sticky top-0 z-50 border-b border-slate-800/80">
+        <div class="max-w-6xl mx-auto px-6 py-4 flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-cyan-400 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/20">
+                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                </div>
+                <div>
+                    <h1 class="text-xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-blue-500">Sports Oracle AI</h1>
+                    <p class="text-[10px] uppercase tracking-widest text-slate-500 font-semibold">Live Neural Predictions</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20">
+                <span class="relative flex h-2 w-2"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span><span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span></span>
+                <span class="text-xs font-medium text-emerald-400">AI Online</span>
+            </div>
         </div>
-        <span class="text-xs px-3 py-1 bg-cyan-950 text-cyan-300 border border-cyan-800 rounded-full">Live AI Mode</span>
     </header>
 
-    <!-- Main Container -->
-    <main class="flex-1 max-w-6xl w-full mx-auto p-6 grid grid-cols-1 md:grid-cols-3 gap-6">
-        
-        <!-- Controls Panel -->
-        <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 flex flex-col gap-6 h-fit">
-            <h2 class="text-sm font-semibold uppercase tracking-wider text-slate-400">Match Filters</h2>
-
-            <!-- Sport Selection -->
-            <div>
-                <label class="block text-xs font-medium text-slate-300 mb-2">Sport</label>
-                <div class="grid grid-cols-2 gap-2">
-                    <button type="button" onclick="setSport('football')" id="sport-football" class="py-2 text-sm rounded-lg border border-cyan-500 bg-cyan-950/40 text-cyan-300 font-medium transition">Football</button>
-                    <button type="button" onclick="setSport('basketball')" id="sport-basketball" class="py-2 text-sm rounded-lg border border-slate-700 bg-slate-800/50 text-slate-400 font-medium transition">Basketball</button>
-                </div>
-            </div>
-
-            <!-- Time Window (12h or 24h) -->
-            <div>
-                <label class="block text-xs font-medium text-slate-300 mb-2">Time Window</label>
-                <div class="grid grid-cols-2 gap-2">
-                    <button type="button" onclick="setHours(12)" id="hours-12" class="py-2 text-sm rounded-lg border border-slate-700 bg-slate-800/50 text-slate-400 font-medium transition">12 Hours</button>
-                    <button type="button" onclick="setHours(24)" id="hours-24" class="py-2 text-sm rounded-lg border border-cyan-500 bg-cyan-950/40 text-cyan-300 font-medium transition">24 Hours</button>
-                </div>
-            </div>
-
-            <!-- Action Button -->
-            <button onclick="fetchPredictions()" id="submit-btn" class="w-full py-3 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold rounded-lg transition shadow-lg shadow-cyan-500/20">
-                Get Top 3 Predictions
-            </button>
-        </div>
-
-        <!-- Results Display Panel -->
-        <div class="md:col-span-2 flex flex-col gap-4">
-            <div class="flex justify-between items-center">
-                <h2 class="text-sm font-semibold uppercase tracking-wider text-slate-400">Curated Recommendations</h2>
-                <span id="status-badge" class="text-xs text-slate-500">Ready</span>
-            </div>
-
-            <div id="results-container" class="flex flex-col gap-4">
-                <div class="bg-slate-900 border border-slate-800 rounded-xl p-8 text-center text-slate-500">
-                    Select your preferences and click "Get Top 3 Predictions" to load live matches.
-                </div>
-            </div>
-        </div>
-    </main>
-
-    <!-- JavaScript Logic -->
-    <script>
-        let currentSport = 'football';
-        let currentHours = 24;
-
-        function setSport(sport) {
-            currentSport = sport;
-            document.getElementById('sport-football').className = sport === 'football' 
-                ? 'py-2 text-sm rounded-lg border border-cyan-500 bg-cyan-950/40 text-cyan-300 font-medium transition'
-                : 'py-2 text-sm rounded-lg border border-slate-700 bg-slate-800/50 text-slate-400 font-medium transition';
-            document.getElementById('sport-basketball').className = sport === 'basketball' 
-                ? 'py-2 text-sm rounded-lg border border-cyan-500 bg-cyan-950/40 text-cyan-300 font-medium transition'
-                : 'py-2 text-sm rounded-lg border border-slate-700 bg-slate-800/50 text-slate-400 font-medium transition';
-        }
-
-        function setHours(hours) {
-            currentHours = hours;
-            document.getElementById('hours-12').className = hours === 12 
-                ? 'py-2 text-sm rounded-lg border border-cyan-500 bg-cyan-950/40 text-cyan-300 font-medium transition'
-                : 'py-2 text-sm rounded-lg border border-slate-700 bg-slate-800/50 text-slate-400 font-medium transition';
-            document.getElementById('hours-24').className = hours === 24 
-                ? 'py-2 text-sm rounded-lg border border-cyan-500 bg-cyan-950/40 text-cyan-300 font-medium transition'
-                : 'py-2 text-sm rounded-lg border border-slate-700 bg-slate-800/50 text-slate-400 font-medium transition';
-        }
-
-        async function fetchPredictions() {
-            const container = document.getElementById('results-container');
-            const badge = document.getElementById('status-badge');
-            
-            container.innerHTML = `<div class="bg-slate-900 border border-slate-800 rounded-xl p-8 text-center text-cyan-400 animate-pulse">Querying live matches for the next ${currentHours}h...</div>`;
-            badge.innerText = "Loading...";
-
-            try {
-                // Hardcoded limit=3 to strictly return only three results
-                const response = await fetch(`/api/get-fixtures?sport=${currentSport}&hours=${currentHours}&limit=3`);
-                const data = await response.json();
-
-                if (data.error) {
-                    throw new Error(data.error);
-                }
-
-                if (!data.fixtures || data.fixtures.length === 0) {
-                    container.innerHTML = `<div class="bg-slate-900 border border-slate-800 rounded-xl p-6 text-center text-slate-400">No matches found within this window.</div>`;
-                    badge.innerText = "Done";
-                    return;
-                }
-
-                container.innerHTML = data.fixtures.map(item => `
-                    <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 flex flex-col gap-3 hover:border-slate-700 transition">
-                        <div class="flex justify-between items-center text-xs text-slate-400">
-                            <span class="font-medium text-cyan-400 uppercase tracking-wide">${item.league} (${item.country})</span>
-                            <span class="bg-slate-800 px-2.5 py-1 rounded-md text-slate-300">${item.time}</span>
-                        </div>
-                        <div class="flex justify-between items-center font-semibold text-lg text-slate-100 my-1">
-                            <span>${item.homeTeam} <span class="text-xs text-slate-500 font-normal">vs</span> ${item.awayTeam}</span>
-                        </div>
-                        <div class="grid grid-cols-2 gap-3 pt-2 border-t border-slate-800/80 text-xs">
-                            <div class="bg-slate-950/60 p-2.5 rounded-lg border border-slate-800/50 flex justify-between items-center">
-                                <span class="text-slate-400">Home Win</span>
-                                <span class="text-cyan-400 font-bold">${item.oddsA}</span>
-                            </div>
-                            <div class="bg-slate-950/60 p-2.5 rounded-lg border border-slate-800/50 flex justify-between items-center">
-                                <span class="text-slate-400">Away Win</span>
-                                <span class="text-cyan-400 font-bold">${item.oddsB}</span>
-                            </div>
-                        </div>
-                        <p class="text-xs text-slate-400 italic bg-slate-950/30 p-2.5 rounded-lg border border-slate-800/30">💡 ${item.analysis}</p>
-                    </div>
-                `).join('');
-
-                badge.innerText = "Success (3 picks)";
-            } catch (err) {
-                container.innerHTML = `<div class="bg-red-950/40 border border-red-900/50 rounded-xl p-6 text-center text-red-400 text-sm">Error: ${err.message}</div>`;
-                badge.innerText = "Failed";
-            }
-        }
-    </script>
-</body>
-</html>
+    <!-- Main Content -->
+    <main class="flex-1 max-w-6xl w-full mx-auto p
