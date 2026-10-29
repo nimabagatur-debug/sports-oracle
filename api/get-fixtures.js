@@ -1,13 +1,5 @@
 export default async function handler(req, res) {
-  // CORS Security Headers
-  res.setHeader('Access-Control-Allow-Credentials', true);
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version');
-
-  if (req.method === 'OPTIONS') {
-    return res.status(200).end();
-  }
 
   const geminiKey = process.env.GEMINI_API_KEY;
 
@@ -16,25 +8,22 @@ export default async function handler(req, res) {
   }
 
   const urlParams = new URL(req.url, `https://${req.headers.host}`).searchParams;
+  const sport = urlParams.get('sport') || 'Football';
+  const market = urlParams.get('market') || 'Win / Draw';
   const hoursWindow = parseInt(urlParams.get('hours')) || 24;
-  const sport = urlParams.get('sport') || 'football';
+  const limit = parseInt(urlParams.get('limit')) || 3;
   const currentDate = new Date().toISOString();
 
   try {
-    const prompt = `You are a professional sports data oracle. The current date and time is ${currentDate}. 
-    Provide exactly 3 upcoming ${sport} matches scheduled globally within the next ${hoursWindow} hours. 
-    Ensure high-profile matches and realistic, up-to-date decimal odds.`;
+    const prompt = `You are a professional sports handicapper. The current date/time is ${currentDate}.
+    Provide exactly ${limit} upcoming ${sport} matches scheduled globally within the next ${hoursWindow} hours.
+    For EACH match, provide a specific prediction exclusively for the "${market}" betting market.`;
 
-    // FIXED: Using the official 'gemini-1.5-flash' endpoint
     const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiKey}`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        contents: [{
-          parts: [{ text: prompt }]
-        }],
+        contents: [{ parts: [{ text: prompt }] }],
         generationConfig: {
           responseMimeType: "application/json",
           responseSchema: {
@@ -42,18 +31,14 @@ export default async function handler(req, res) {
             items: {
               type: "OBJECT",
               properties: {
-                homeTeam: { type: "STRING", description: "Home team name" },
-                awayTeam: { type: "STRING", description: "Away team name" },
+                matchup: { type: "STRING", description: "Format: 'Team A vs Team B'" },
                 league: { type: "STRING", description: "Tournament or league name" },
-                country: { type: "STRING", description: "Host country" },
-                time: { type: "STRING", description: "Time until kickoff, e.g., 'In 4 hours'" },
-                oddsA: { type: "NUMBER", description: "Decimal odds for home team to win, e.g., 2.10" },
-                oddsB: { type: "NUMBER", description: "Decimal odds for away team to win, e.g., 1.85" },
-                bookmaker: { type: "STRING", description: "Name of a major sportsbook, e.g., 'Bet365'" },
-                confidence: { type: "STRING", description: "Prediction confidence: 'High' or 'Medium'" },
-                analysis: { type: "STRING", description: "One sentence tactical analysis explaining the odds" }
+                time: { type: "STRING", description: "e.g., 'In 4 hours'" },
+                pick: { type: "STRING", description: "The specific prediction (e.g., 'Home Team -1.5', 'Over 2.5 Goals', 'Away Win')" },
+                odds: { type: "NUMBER", description: "Realistic decimal odds for this specific pick (e.g., 1.90)" },
+                analysis: { type: "STRING", description: "One sentence explaining why this pick is valuable" }
               },
-              required: ["homeTeam", "awayTeam", "league", "country", "time", "oddsA", "oddsB", "bookmaker", "confidence", "analysis"]
+              required: ["matchup", "league", "time", "pick", "odds", "analysis"]
             }
           }
         }
@@ -74,8 +59,7 @@ export default async function handler(req, res) {
 
     const fixtures = JSON.parse(candidateText);
 
-    res.setHeader('Cache-Control', 's-maxage=600, stale-while-revalidate');
-    
+    res.setHeader('Cache-Control', 's-maxage=60, stale-while-revalidate');
     return res.status(200).json({ fixtures });
 
   } catch (error) {
