@@ -18,14 +18,8 @@ export default async function handler(req, res) {
     let matchedFixtures = [];
     const now = new Date();
     const futureTime = new Date(now.getTime() + hoursWindow * 60 * 60 * 1000);
-
-    // Determine how many days ahead to check based on the hours window (e.g., 72h = 3 days)
-    const daysAhead = Math.ceil(hoursWindow / 24);
-    const targetDates = [];
-    for (let i = 0; i < daysAhead; i++) {
-      const d = new Date(now.getTime() + i * 24 * 60 * 60 * 1000);
-      targetDates.push(d.toISOString().split('T')[0]);
-    }
+    const todayStr = now.toISOString().split('T')[0];
+    const currentYear = now.getFullYear();
 
     const subdomains = sport === 'basketball' 
       ? ['v1.basketball'] 
@@ -33,11 +27,15 @@ export default async function handler(req, res) {
         ? ['v3.football', 'v1.basketball'] 
         : ['v3.football'];
 
-    // Query API across the target dates and selected leagues
+    // To prevent hitting API rate limits on free tiers, we check today and tomorrow for the selected leagues
+    const targetDates = [todayStr];
+    const tomorrow = new Date(now.getTime() + 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+    if (hoursWindow > 24) targetDates.push(tomorrow);
+
     for (const sub of subdomains) {
-      for (const leagueId of leagueIds) {
+      for (const leagueId of leagueIds.slice(0, 4)) { // Limit to first 4 checked leagues to respect free rate limits
         for (const dateStr of targetDates) {
-          const apiResponse = await fetch(`https://${sub}.api-sports.io/fixtures?date=${dateStr}&league=${leagueId}&season=2024`, {
+          const apiResponse = await fetch(`https://${sub}.api-sports.io/fixtures?date=${dateStr}&league=${leagueId}&season=${currentYear}`, {
             headers: { "x-apisports-key": apiKey }
           });
           
