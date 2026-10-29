@@ -16,7 +16,7 @@ export default async function handler(req, res) {
     3. The TOTAL multiplied decimal odds for the entire accumulator MUST be strictly between 2.00 and 3.00.
     Return ONLY valid JSON, no markdown blocks.`;
 
-    const response = await fetch(`[https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-pro-preview:generateContent?key=$](https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-pro-preview:generateContent?key=$){geminiKey}`, {
+   const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-pro-preview:generateContent?key=${geminiKey}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
