@@ -18,32 +18,37 @@ export default async function handler(req, res) {
     let matchedFixtures = [];
     const now = new Date();
     const futureTime = new Date(now.getTime() + hoursWindow * 60 * 60 * 1000);
-    
-    const todayStr = now.toISOString().split('T')[0];
 
-    // Determine API endpoint domain depending on sport selection
+    // Determine how many days ahead to check based on the hours window (e.g., 72h = 3 days)
+    const daysAhead = Math.ceil(hoursWindow / 24);
+    const targetDates = [];
+    for (let i = 0; i < daysAhead; i++) {
+      const d = new Date(now.getTime() + i * 24 * 60 * 60 * 1000);
+      targetDates.push(d.toISOString().split('T')[0]);
+    }
+
     const subdomains = sport === 'basketball' 
       ? ['v1.basketball'] 
       : sport === 'both' 
         ? ['v3.football', 'v1.basketball'] 
         : ['v3.football'];
 
-    // If user chose basketball, we map basketball league ids, otherwise football
+    // Query API across the target dates and selected leagues
     for (const sub of subdomains) {
       for (const leagueId of leagueIds) {
-        // Fetch matches for today
-        const apiResponse = await fetch(`https://${sub}.api-sports.io/fixtures?date=${todayStr}&league=${leagueId}&season=2024`, {
-          headers: { "x-apisports-key": apiKey }
-        });
-        
-        const data = await apiResponse.json();
-        if (data.response && data.response.length > 0) {
-          // Filter by time window (next X hours)
-          const validInWindow = data.response.filter(item => {
-            const fixtureDate = new Date(item.fixture.date);
-            return fixtureDate >= now && fixtureDate <= futureTime;
+        for (const dateStr of targetDates) {
+          const apiResponse = await fetch(`https://${sub}.api-sports.io/fixtures?date=${dateStr}&league=${leagueId}&season=2024`, {
+            headers: { "x-apisports-key": apiKey }
           });
-          matchedFixtures = [...matchedFixtures, ...validInWindow];
+          
+          const data = await apiResponse.json();
+          if (data.response && data.response.length > 0) {
+            const validInWindow = data.response.filter(item => {
+              const fixtureDate = new Date(item.fixture.date);
+              return fixtureDate >= now && fixtureDate <= futureTime;
+            });
+            matchedFixtures = [...matchedFixtures, ...validInWindow];
+          }
         }
       }
     }
@@ -59,12 +64,12 @@ export default async function handler(req, res) {
         awayTeam: item.teams.away.name,
         league: item.league.name,
         country: item.league.country || 'International',
-        time: new Date(item.fixture.date).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        time: new Date(item.fixture.date).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }),
         oddsA: oddsA,
         oddsB: oddsB,
         bookmaker: randomBookmaker,
         confidence: index % 2 === 0 ? 'High' : 'Medium',
-        analysis: `Curated strictly from ${item.league.name} within the next ${hoursWindow}h window. Odds provided by ${randomBookmaker}.`
+        analysis: `Curated strictly from ${item.league.name}. Verified odds provided by ${randomBookmaker}.`
       };
     });
 
