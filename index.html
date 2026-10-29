@@ -45,7 +45,7 @@
             </div>
             <div class="flex items-center space-x-2 bg-dark-700/60 px-3 py-1.5 rounded-full border border-slate-700 text-xs text-emerald-400">
                 <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                <span>Interactive League Selection Active</span>
+                <span>Strict Filter Active</span>
             </div>
         </div>
     </header>
@@ -75,18 +75,23 @@
                 <!-- 2. League Selection -->
                 <div class="space-y-3">
                     <div class="flex justify-between items-center">
-                        <label class="text-sm font-semibold text-slate-300">2. Select Best Leagues</label>
-                        <span id="league-count-badge" class="text-xs text-emerald-400">4 selected</span>
+                        <label class="text-sm font-semibold text-slate-300">2. Select Leagues</label>
+                        <span id="league-count-badge" class="text-xs text-emerald-400">0 selected</span>
                     </div>
                     <div id="leagues-container" class="space-y-2 max-h-48 overflow-y-auto pr-1">
-                        <!-- Populated dynamically -->
+                        <!-- Populated dynamically based on sport choice -->
                     </div>
                 </div>
 
-                <!-- 3. Date Selection -->
+                <!-- 3. Time Window Selection -->
                 <div class="space-y-2">
-                    <label class="text-sm font-semibold text-slate-300">3. Match Date</label>
-                    <input type="date" id="match-date" class="w-full bg-dark-700/60 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-200 focus:border-emerald-500 outline-none">
+                    <label class="text-sm font-semibold text-slate-300">3. Time Window</label>
+                    <div class="grid grid-cols-4 gap-2">
+                        <button type="button" onclick="setTimeWindow(6)" class="time-btn py-2 text-xs font-medium rounded-xl border border-slate-700 bg-dark-700/50 hover:border-emerald-500 transition text-slate-300" data-hours="6">6h</button>
+                        <button type="button" onclick="setTimeWindow(12)" class="time-btn py-2 text-xs font-medium rounded-xl border border-slate-700 bg-dark-700/50 hover:border-emerald-500 transition text-slate-300" data-hours="12">12h</button>
+                        <button type="button" onclick="setTimeWindow(24)" class="time-btn py-2 text-xs font-medium rounded-xl border border-emerald-500 bg-emerald-500/10 text-emerald-400 transition" data-hours="24">24h</button>
+                        <button type="button" onclick="setTimeWindow(72)" class="time-btn py-2 text-xs font-medium rounded-xl border border-slate-700 bg-dark-700/50 hover:border-emerald-500 transition text-slate-300" data-hours="72">72h</button>
+                    </div>
                 </div>
 
                 <!-- 4. Fixture Count -->
@@ -142,7 +147,7 @@
                             <i class="fa-solid fa-bullseye animate-pulse"></i>
                         </div>
                         <h3 class="text-lg font-bold text-slate-300">Choose your sports and leagues above</h3>
-                        <p class="text-sm text-slate-400 max-w-md mx-auto">The oracle will strictly fetch matches from your selected tournaments with verified bookmaker odds.</p>
+                        <p class="text-sm text-slate-400 max-w-md mx-auto">Select Football or Basketball, pick specific tournaments, and choose your time window.</p>
                     </div>
                 </div>
             </div>
@@ -150,7 +155,7 @@
     </main>
 
     <script>
-        document.getElementById('match-date').valueAsDate = new Date();
+        let currentTimeWindow = 24;
 
         const leaguesData = {
             football: [
@@ -168,15 +173,25 @@
             ]
         };
 
-        let selectedLeagues = [39, 140, 135, 2];
+        let selectedLeagues = [39, 140, 135, 2]; // Default football leagues
         let currentFixtures = [];
         let slipSelections = [];
+
+        function setTimeWindow(hours) {
+            currentTimeWindow = hours;
+            document.querySelectorAll('.time-btn').forEach(btn => {
+                if (btn.getAttribute('data-hours') == hours) {
+                    btn.className = "time-btn py-2 text-xs font-medium rounded-xl border border-emerald-500 bg-emerald-500/10 text-emerald-400 transition";
+                } else {
+                    btn.className = "time-btn py-2 text-xs font-medium rounded-xl border border-slate-700 bg-dark-700/50 hover:border-emerald-500 transition text-slate-300";
+                }
+            });
+        }
 
         function updateSportSelection() {
             const isFootball = document.getElementById('sport-football').checked;
             const isBasketball = document.getElementById('sport-basketball').checked;
             
-            // Update visual active state for labels
             document.getElementById('label-football').className = isFootball 
                 ? "flex items-center gap-2 p-2.5 rounded-xl border border-emerald-500 bg-emerald-500/10 text-emerald-400 text-xs font-medium cursor-pointer"
                 : "flex items-center gap-2 p-2.5 rounded-xl border border-slate-700 bg-dark-700/40 text-slate-300 text-xs font-medium cursor-pointer hover:border-slate-600";
@@ -189,7 +204,6 @@
             if (isFootball) activeLeagues = activeLeagues.concat(leaguesData.football);
             if (isBasketball) activeLeagues = activeLeagues.concat(leaguesData.basketball);
 
-            // Default select all available for the active sports
             selectedLeagues = activeLeagues.map(l => l.id);
             renderLeagues(activeLeagues);
         }
@@ -197,8 +211,8 @@
         function renderLeagues(leagues) {
             const container = document.getElementById('leagues-container');
             if (leagues.length === 0) {
-                container.innerHTML = `<p class="text-xs text-red-400">Please select at least one sport.</p>`;
-                document.getElementById('league-count-badge.innerText = `0 selected`;
+                container.innerHTML = `<p class="text-xs text-red-400">Please select at least one sport type.</p>`;
+                document.getElementById('league-count-badge').innerText = `0 selected`;
                 return;
             }
             container.innerHTML = leagues.map(l => {
@@ -225,7 +239,6 @@
 
         async function fetchBestChoices() {
             const container = document.getElementById('fixtures-container');
-            const dateVal = document.getElementById('match-date').value;
             const count = document.getElementById('match-slider').value;
             const isFootball = document.getElementById('sport-football').checked;
             const isBasketball = document.getElementById('sport-basketball').checked;
@@ -243,14 +256,14 @@
                 <div class="glass-panel p-12 rounded-2xl text-center space-y-4">
                     <div class="w-12 h-12 rounded-full border-4 border-emerald-500 border-t-transparent animate-spin mx-auto"></div>
                     <h3 class="font-bold text-slate-200">Querying Selected Tournaments...</h3>
-                    <p class="text-xs text-slate-400">Strictly pulling fixtures and bookmaker odds for your exact choices.</p>
+                    <p class="text-xs text-slate-400">Strictly pulling fixtures within the next ${currentTimeWindow} hours.</p>
                 </div>
             `;
 
             const sportType = isFootball && isBasketball ? 'both' : (isBasketball ? 'basketball' : 'football');
 
             try {
-                const response = await fetch(`/api/get-fixtures?date=${dateVal}&leagues=${selectedLeagues.join(',')}&sport=${sportType}&limit=${count}`);
+                const response = await fetch(`/api/get-fixtures?hours=${currentTimeWindow}&leagues=${selectedLeagues.join(',')}&sport=${sportType}&limit=${count}`);
                 const data = await response.json();
                 
                 if(data.error) {
@@ -272,7 +285,7 @@
             document.getElementById('fixture-meta').innerText = `${currentFixtures.length} curated picks`;
 
             if(currentFixtures.length === 0) {
-                container.innerHTML = `<div class="glass-panel p-8 text-center text-slate-400">No matches found for your selected leagues on this date. Try choosing a different date with active fixtures!</div>`;
+                container.innerHTML = `<div class="glass-panel p-8 text-center text-slate-400">No matches found in your selected leagues within the next ${currentTimeWindow} hours. Try selecting more leagues or a wider time window!</div>`;
                 return;
             }
 
