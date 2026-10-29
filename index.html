@@ -40,12 +40,12 @@
                 </div>
                 <div>
                     <h1 class="text-xl font-bold bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent">Sports Oracle AI</h1>
-                    <p class="text-xs text-slate-400">Custom Tournament & Smart Best Choices</p>
+                    <p class="text-xs text-slate-400">Multi-Sport Curated Best Choices & Bookmaker Odds</p>
                 </div>
             </div>
             <div class="flex items-center space-x-2 bg-dark-700/60 px-3 py-1.5 rounded-full border border-slate-700 text-xs text-emerald-400">
                 <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                <span>Smart Filter Active</span>
+                <span>Strict League Filtering Active</span>
             </div>
         </div>
     </header>
@@ -61,15 +61,22 @@
 
                 <!-- 1. Sport Selection -->
                 <div class="space-y-3">
-                    <label class="text-sm font-semibold text-slate-300">1. Select Sports Type</label>
-                    <div id="sports-grid" class="grid grid-cols-2 gap-2"></div>
+                    <label class="text-sm font-semibold text-slate-300">1. Select Sport(s)</label>
+                    <div class="grid grid-cols-2 gap-2">
+                        <label class="flex items-center gap-2 p-2.5 rounded-xl border border-emerald-500 bg-emerald-500/10 text-emerald-400 text-xs font-medium cursor-pointer">
+                            <input type="checkbox" id="sport-football" checked onchange="updateSportSelection()" class="accent-emerald-500 rounded"> Football
+                        </label>
+                        <label class="flex items-center gap-2 p-2.5 rounded-xl border border-slate-700 bg-dark-700/40 text-slate-300 text-xs font-medium cursor-pointer hover:border-slate-600">
+                            <input type="checkbox" id="sport-basketball" onchange="updateSportSelection()" class="accent-emerald-500 rounded"> Basketball
+                        </label>
+                    </div>
                 </div>
 
                 <!-- 2. League Selection -->
                 <div class="space-y-3">
                     <div class="flex justify-between items-center">
-                        <label class="text-sm font-semibold text-slate-300">2. Select Tournaments</label>
-                        <span id="league-count-badge" class="text-xs text-emerald-400">All Top Leagues</span>
+                        <label class="text-sm font-semibold text-slate-300">2. Select Best Leagues</label>
+                        <span id="league-count-badge" class="text-xs text-emerald-400">Selected Leagues</span>
                     </div>
                     <div id="leagues-container" class="space-y-2 max-h-48 overflow-y-auto pr-1">
                         <!-- Populated dynamically -->
@@ -124,7 +131,7 @@
             <div class="flex-1 space-y-4">
                 <div class="flex items-center justify-between px-1">
                     <h2 class="font-bold text-slate-200 flex items-center gap-2">
-                        <i class="fa-solid fa-ranking-star text-cyan-400"></i> Top Curated Recommendations
+                        <i class="fa-solid fa-ranking-star text-cyan-400"></i> Top Curated Recommendations & Bookmaker Odds
                     </h2>
                     <span id="fixture-meta" class="text-xs text-slate-400">Ready</span>
                 </div>
@@ -134,8 +141,8 @@
                         <div class="w-16 h-16 rounded-full bg-dark-700 mx-auto flex items-center justify-center text-slate-500 text-2xl">
                             <i class="fa-solid fa-bullseye animate-pulse"></i>
                         </div>
-                        <h3 class="text-lg font-bold text-slate-300">Set your filters and click Get Best Choices</h3>
-                        <p class="text-sm text-slate-400 max-w-md mx-auto">The oracle will scan your chosen tournaments and dates for top value picks.</p>
+                        <h3 class="text-lg font-bold text-slate-300">Choose your sports and leagues above</h3>
+                        <p class="text-sm text-slate-400 max-w-md mx-auto">The oracle will strictly fetch matches from your selected tournaments with verified bookmaker odds.</p>
                     </div>
                 </div>
             </div>
@@ -143,29 +150,50 @@
     </main>
 
     <script>
-        // Set default date to today
         document.getElementById('match-date').valueAsDate = new Date();
 
-        const availableLeagues = [
-            { id: 39, name: 'Premier League (England)' },
-            { id: 140, name: 'La Liga (Spain)' },
-            { id: 135, name: 'Serie A (Italy)' },
-            { id: 78, name: 'Bundesliga (Germany)' },
-            { id: 61, name: 'Ligue 1 (France)' },
-            { id: 2, name: 'UEFA Champions League' }
-        ];
+        const leaguesData = {
+            football: [
+                { id: 39, name: 'Premier League (England)' },
+                { id: 140, name: 'La Liga (Spain)' },
+                { id: 135, name: 'Serie A (Italy)' },
+                { id: 78, name: 'Bundesliga (Germany)' },
+                { id: 61, name: 'Ligue 1 (France)' },
+                { id: 2, name: 'UEFA Champions League' }
+            ],
+            basketball: [
+                { id: 12, name: 'NBA (USA)' },
+                { id: 110, name: 'EuroLeague (Europe)' },
+                { id: 197, name: 'ACB (Spain)' }
+            ]
+        };
 
         let selectedLeagues = [39, 140, 135, 2];
         let currentFixtures = [];
         let slipSelections = [];
 
-        function renderLeagues() {
+        function updateSportSelection() {
+            const isFootball = document.getElementById('sport-football').checked;
+            const isBasketball = document.getElementById('sport-basketball').checked;
+            
+            let activeLeagues = [];
+            if (isFootball) activeLeagues = activeLeagues.concat(leaguesData.football);
+            if (isBasketball) activeLeagues = activeLeagues.concat(leaguesData.basketball);
+
+            selectedLeagues = activeLeagues.map(l => l.id);
+            renderLeagues(activeLeagues);
+        }
+
+        function renderLeagues(leagues) {
             const container = document.getElementById('leagues-container');
-            container.innerHTML = availableLeagues.map(l => {
-                const checked = selectedLeagues.includes(l.id) ? 'checked' : '';
+            if (leagues.length === 0) {
+                container.innerHTML = `<p class="text-xs text-red-400">Please select at least one sport.</p>`;
+                return;
+            }
+            container.innerHTML = leagues.map(l => {
                 return `
                     <label class="flex items-center gap-2.5 p-2 rounded-xl bg-dark-700/30 border border-slate-700/60 text-xs cursor-pointer hover:border-slate-600 transition">
-                        <input type="checkbox" value="${l.id}" ${checked} onchange="toggleLeague(${l.id})" class="accent-emerald-500 rounded">
+                        <input type="checkbox" value="${l.id}" checked onchange="toggleLeague(${l.id})" class="accent-emerald-500 rounded">
                         <span class="text-slate-200">${l.name}</span>
                     </label>
                 `;
@@ -184,22 +212,30 @@
             const container = document.getElementById('fixtures-container');
             const dateVal = document.getElementById('match-date').value;
             const count = document.getElementById('match-slider').value;
+            const isFootball = document.getElementById('sport-football').checked;
+            const isBasketball = document.getElementById('sport-basketball').checked;
 
+            if (!isFootball && !isBasketball) {
+                alert("Please select at least Football or Basketball.");
+                return;
+            }
             if (selectedLeagues.length === 0) {
-                alert("Please select at least one tournament/league.");
+                alert("Please select at least one league.");
                 return;
             }
 
             container.innerHTML = `
                 <div class="glass-panel p-12 rounded-2xl text-center space-y-4">
                     <div class="w-12 h-12 rounded-full border-4 border-emerald-500 border-t-transparent animate-spin mx-auto"></div>
-                    <h3 class="font-bold text-slate-200">Analyzing Top Tournament Odds...</h3>
-                    <p class="text-xs text-slate-400">Filtering matches for the highest confidence and value choices.</p>
+                    <h3 class="font-bold text-slate-200">Querying Selected Tournaments...</h3>
+                    <p class="text-xs text-slate-400">Strictly pulling fixtures and bookmaker odds for your exact choices.</p>
                 </div>
             `;
 
+            const sportType = isFootball && isBasketball ? 'both' : (isBasketball ? 'basketball' : 'football');
+
             try {
-                const response = await fetch(`/api/get-fixtures?date=${dateVal}&leagues=${selectedLeagues.join(',')}&limit=${count}`);
+                const response = await fetch(`/api/get-fixtures?date=${dateVal}&leagues=${selectedLeagues.join(',')}&sport=${sportType}&limit=${count}`);
                 const data = await response.json();
                 
                 if(data.error) {
@@ -212,7 +248,7 @@
                 renderFixtures();
                 updateAccaSlip();
             } catch (err) {
-                container.innerHTML = `<div class="glass-panel p-6 text-red-400 text-center">Failed to fetch best choice fixtures.</div>`;
+                container.innerHTML = `<div class="glass-panel p-6 text-red-400 text-center">Failed to fetch curated fixtures.</div>`;
             }
         }
 
@@ -221,7 +257,7 @@
             document.getElementById('fixture-meta').innerText = `${currentFixtures.length} curated picks`;
 
             if(currentFixtures.length === 0) {
-                container.innerHTML = `<div class="glass-panel p-8 text-center text-slate-400">No high-confidence matches found for this date in selected leagues. Try another date!</div>`;
+                container.innerHTML = `<div class="glass-panel p-8 text-center text-slate-400">No matches found for your selected leagues on this date. Try choosing a different date with active fixtures!</div>`;
                 return;
             }
 
@@ -230,11 +266,11 @@
                 const isSelectedB = slipSelections.some(s => s.fixtureIndex === index && s.pick === 'B');
                 
                 return `
-                    <div class="glass-panel p-5 rounded-2xl space-y-4 border ${f.confidence === 'High' ? 'border-emerald-500/30' : 'border-slate-800'}">
+                    <div class="glass-panel p-5 rounded-2xl space-y-4 border border-emerald-500/20">
                         <div class="flex items-center justify-between text-xs text-slate-400 border-b border-slate-800 pb-2">
                             <span class="text-cyan-400 font-semibold uppercase"><i class="fa-solid fa-trophy mr-1"></i> ${f.league}</span>
                             <span class="flex items-center gap-2">
-                                <span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 font-bold text-[10px]">Value: ${f.confidence}</span>
+                                <span class="px-2 py-0.5 rounded bg-amber-500/20 text-amber-400 font-bold text-[10px]"><i class="fa-solid fa-book-bookmark mr-1"></i> Bookmaker: ${f.bookmaker}</span>
                                 <span><i class="fa-regular fa-clock mr-1"></i> ${f.time}</span>
                             </span>
                         </div>
@@ -290,16 +326,3 @@
                 slipSelections.push({ fixtureIndex: index, pick: 'A', odds: f.oddsA });
             });
             renderFixtures();
-            updateAccaSlip();
-        }
-
-        // Initialize checkboxes
-        document.getElementById('sports-grid').innerHTML = `
-            <label class="flex items-center gap-2 p-2 rounded-xl border border-emerald-500 bg-emerald-500/10 text-emerald-400 text-xs font-medium cursor-pointer">
-                <input type="checkbox" checked disabled class="accent-emerald-500"> Football (Soccer)
-            </label>
-        `;
-        renderLeagues();
-    </script>
-</body>
-</html>
