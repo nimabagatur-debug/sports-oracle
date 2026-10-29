@@ -25,7 +25,7 @@ export default async function handler(req, res) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         contents: [{ parts: [{ text: prompt }] }],
-        // Gives the 3.5 Lite model live internet access to fix hallucinated matches
+        // Enables live internet access to fetch real match data
         tools: [{ googleSearch: {} }], 
         generationConfig: {
           responseMimeType: "application/json",
