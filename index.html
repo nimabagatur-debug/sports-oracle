@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Sports Oracle & Multi-Match Acca Builder</title>
+    <title>AI Sports Oracle & Smart Acca Builder</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
@@ -40,12 +40,12 @@
                 </div>
                 <div>
                     <h1 class="text-xl font-bold bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent">Sports Oracle AI</h1>
-                    <p class="text-xs text-slate-400">Live API & Acca Optimizer</p>
+                    <p class="text-xs text-slate-400">Custom Tournament & Smart Best Choices</p>
                 </div>
             </div>
             <div class="flex items-center space-x-2 bg-dark-700/60 px-3 py-1.5 rounded-full border border-slate-700 text-xs text-emerald-400">
                 <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                <span>Live Feed Active</span>
+                <span>Smart Filter Active</span>
             </div>
         </div>
     </header>
@@ -56,37 +56,43 @@
         <div class="lg:col-span-1 space-y-6">
             <div class="glass-panel p-6 rounded-2xl shadow-xl space-y-6">
                 <h2 class="text-lg font-bold text-slate-200 flex items-center gap-2">
-                    <i class="fa-solid fa-sliders text-emerald-400"></i> Match Parameters
+                    <i class="fa-solid fa-sliders text-emerald-400"></i> Match Filters
                 </h2>
 
+                <!-- 1. Sport Selection -->
                 <div class="space-y-3">
-                    <div class="flex justify-between items-center">
-                        <label class="text-sm font-semibold text-slate-300">Select Sports (1 to 6)</label>
-                        <span id="sport-count-badge" class="text-xs px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 font-medium">3 selected</span>
-                    </div>
+                    <label class="text-sm font-semibold text-slate-300">1. Select Sports Type</label>
                     <div id="sports-grid" class="grid grid-cols-2 gap-2"></div>
                 </div>
 
-                <div class="space-y-2">
-                    <label class="text-sm font-semibold text-slate-300">Time Window</label>
-                    <div class="grid grid-cols-4 gap-2">
-                        <button type="button" onclick="setTimeWindow(6)" class="time-btn py-2 text-xs font-medium rounded-xl border border-slate-700 bg-dark-700/50 hover:border-emerald-500 transition text-slate-300">6h</button>
-                        <button type="button" onclick="setTimeWindow(12)" class="time-btn py-2 text-xs font-medium rounded-xl border border-slate-700 bg-dark-700/50 hover:border-emerald-500 transition text-slate-300">12h</button>
-                        <button type="button" onclick="setTimeWindow(24)" class="time-btn py-2 text-xs font-medium rounded-xl border border-emerald-500 bg-emerald-500/10 text-emerald-400 transition">24h</button>
-                        <button type="button" onclick="setTimeWindow(72)" class="time-btn py-2 text-xs font-medium rounded-xl border border-slate-700 bg-dark-700/50 hover:border-emerald-500 transition text-slate-300">72h</button>
+                <!-- 2. League Selection -->
+                <div class="space-y-3">
+                    <div class="flex justify-between items-center">
+                        <label class="text-sm font-semibold text-slate-300">2. Select Tournaments</label>
+                        <span id="league-count-badge" class="text-xs text-emerald-400">All Top Leagues</span>
+                    </div>
+                    <div id="leagues-container" class="space-y-2 max-h-48 overflow-y-auto pr-1">
+                        <!-- Populated dynamically -->
                     </div>
                 </div>
 
+                <!-- 3. Date Selection -->
+                <div class="space-y-2">
+                    <label class="text-sm font-semibold text-slate-300">3. Match Date</label>
+                    <input type="date" id="match-date" class="w-full bg-dark-700/60 border border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-200 focus:border-emerald-500 outline-none">
+                </div>
+
+                <!-- 4. Fixture Count -->
                 <div class="space-y-2">
                     <div class="flex justify-between items-center">
-                        <label class="text-sm font-semibold text-slate-300">Fixture Count</label>
+                        <label class="text-sm font-semibold text-slate-300">4. Best Result Count</label>
                         <span id="match-count-val" class="text-sm font-bold text-emerald-400">5</span>
                     </div>
                     <input type="range" id="match-slider" min="3" max="10" value="5" class="w-full accent-emerald-500 bg-dark-700 h-2 rounded-lg cursor-pointer" oninput="document.getElementById('match-count-val').innerText = this.value">
                 </div>
 
-                <button onclick="fetchLiveFixtures()" class="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-emerald-500 to-cyan-500 text-dark-900 font-bold hover:opacity-90 transition shadow-lg glow-emerald flex items-center justify-center gap-2">
-                    <i class="fa-solid fa-wand-magic-sparkles"></i> Load Live Matches & Odds
+                <button onclick="fetchBestChoices()" class="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-emerald-500 to-cyan-500 text-dark-900 font-bold hover:opacity-90 transition shadow-lg glow-emerald flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i> Get Best Choice Predictions
                 </button>
             </div>
         </div>
@@ -99,7 +105,7 @@
                         <i class="fa-solid fa-ticket"></i>
                     </div>
                     <div>
-                        <h3 class="font-bold text-slate-200">Accumulator Slip</h3>
+                        <h3 class="font-bold text-slate-200">Best Accumulator Slip</h3>
                         <p class="text-xs text-slate-400"><span id="selected-count">0</span> selections added</p>
                     </div>
                 </div>
@@ -118,7 +124,7 @@
             <div class="flex-1 space-y-4">
                 <div class="flex items-center justify-between px-1">
                     <h2 class="font-bold text-slate-200 flex items-center gap-2">
-                        <i class="fa-solid fa-ranking-star text-cyan-400"></i> Upcoming Fixtures & Predictions
+                        <i class="fa-solid fa-ranking-star text-cyan-400"></i> Top Curated Recommendations
                     </h2>
                     <span id="fixture-meta" class="text-xs text-slate-400">Ready</span>
                 </div>
@@ -126,10 +132,10 @@
                 <div id="fixtures-container" class="space-y-4">
                     <div class="glass-panel p-12 rounded-2xl text-center space-y-4">
                         <div class="w-16 h-16 rounded-full bg-dark-700 mx-auto flex items-center justify-center text-slate-500 text-2xl">
-                            <i class="fa-solid fa-futbol animate-bounce"></i>
+                            <i class="fa-solid fa-bullseye animate-pulse"></i>
                         </div>
-                        <h3 class="text-lg font-bold text-slate-300">Configure parameters and click load</h3>
-                        <p class="text-sm text-slate-400 max-w-md mx-auto">Select your sports choices and load live matches from your API.</p>
+                        <h3 class="text-lg font-bold text-slate-300">Set your filters and click Get Best Choices</h3>
+                        <p class="text-sm text-slate-400 max-w-md mx-auto">The oracle will scan your chosen tournaments and dates for top value picks.</p>
                     </div>
                 </div>
             </div>
@@ -137,69 +143,63 @@
     </main>
 
     <script>
-        const availableSports = [
-            { id: 'football', name: 'Football (Soccer)', icon: 'fa-futbol' },
-            { id: 'basketball', name: 'Basketball', icon: 'fa-basketball' },
-            { id: 'tennis', name: 'Tennis', icon: 'fa-baseball-bat-ball' },
-            { id: 'esports', name: 'Esports', icon: 'fa-gamepad' },
-            { id: 'icehockey', name: 'Ice Hockey', icon: 'fa-hockey-puck' },
-            { id: 'mma', name: 'MMA / Boxing', icon: 'fa-hand-fist' }
+        // Set default date to today
+        document.getElementById('match-date').valueAsDate = new Date();
+
+        const availableLeagues = [
+            { id: 39, name: 'Premier League (England)' },
+            { id: 140, name: 'La Liga (Spain)' },
+            { id: 135, name: 'Serie A (Italy)' },
+            { id: 78, name: 'Bundesliga (Germany)' },
+            { id: 61, name: 'Ligue 1 (France)' },
+            { id: 2, name: 'UEFA Champions League' }
         ];
 
-        let selectedSports = ['football', 'basketball', 'tennis'];
-        let currentTimeWindow = 24;
+        let selectedLeagues = [39, 140, 135, 2];
         let currentFixtures = [];
         let slipSelections = [];
 
-        function renderSportsGrid() {
-            const grid = document.getElementById('sports-grid');
-            grid.innerHTML = availableSports.map(sport => {
-                const isSelected = selectedSports.includes(sport.id);
+        function renderLeagues() {
+            const container = document.getElementById('leagues-container');
+            container.innerHTML = availableLeagues.map(l => {
+                const checked = selectedLeagues.includes(l.id) ? 'checked' : '';
                 return `
-                    <button type="button" onclick="toggleSport('${sport.id}')" class="flex items-center gap-2 p-2.5 rounded-xl border text-xs font-medium transition text-left ${isSelected ? 'border-emerald-500 bg-emerald-500/10 text-emerald-400 shadow-sm' : 'border-slate-700 bg-dark-700/40 text-slate-400 hover:border-slate-600'}">
-                        <i class="fa-solid ${sport.icon} w-4 text-center"></i>
-                        <span class="truncate">${sport.name}</span>
-                    </button>
+                    <label class="flex items-center gap-2.5 p-2 rounded-xl bg-dark-700/30 border border-slate-700/60 text-xs cursor-pointer hover:border-slate-600 transition">
+                        <input type="checkbox" value="${l.id}" ${checked} onchange="toggleLeague(${l.id})" class="accent-emerald-500 rounded">
+                        <span class="text-slate-200">${l.name}</span>
+                    </label>
                 `;
             }).join('');
-            document.getElementById('sport-count-badge').innerText = `${selectedSports.length} selected`;
         }
 
-        function toggleSport(id) {
-            if (selectedSports.includes(id)) {
-                if (selectedSports.length === 1) { alert("Please select at least 1 sport."); return; }
-                selectedSports = selectedSports.filter(s => s !== id);
+        function toggleLeague(id) {
+            if (selectedLeagues.includes(id)) {
+                selectedLeagues = selectedLeagues.filter(l => l !== id);
             } else {
-                if (selectedSports.length >= 6) { alert("Maximum 6 sports allowed."); return; }
-                selectedSports.push(id);
+                selectedLeagues.push(id);
             }
-            renderSportsGrid();
         }
 
-        function setTimeWindow(hours) {
-            currentTimeWindow = hours;
-            document.querySelectorAll('.time-btn').forEach(btn => {
-                btn.className = "time-btn py-2 text-xs font-medium rounded-xl border border-slate-700 bg-dark-700/50 hover:border-emerald-500 transition text-slate-300";
-                if(btn.innerText.includes(hours)) {
-                    btn.className = "time-btn py-2 text-xs font-medium rounded-xl border border-emerald-500 bg-emerald-500/10 text-emerald-400 transition";
-                }
-            });
-        }
-
-        async function fetchLiveFixtures() {
+        async function fetchBestChoices() {
             const container = document.getElementById('fixtures-container');
-            const count = parseInt(document.getElementById('match-slider').value);
+            const dateVal = document.getElementById('match-date').value;
+            const count = document.getElementById('match-slider').value;
+
+            if (selectedLeagues.length === 0) {
+                alert("Please select at least one tournament/league.");
+                return;
+            }
 
             container.innerHTML = `
                 <div class="glass-panel p-12 rounded-2xl text-center space-y-4">
                     <div class="w-12 h-12 rounded-full border-4 border-emerald-500 border-t-transparent animate-spin mx-auto"></div>
-                    <h3 class="font-bold text-slate-200">Querying Live Database...</h3>
-                    <p class="text-xs text-slate-400">Fetching matches and generating oracle predictions.</p>
+                    <h3 class="font-bold text-slate-200">Analyzing Top Tournament Odds...</h3>
+                    <p class="text-xs text-slate-400">Filtering matches for the highest confidence and value choices.</p>
                 </div>
             `;
 
             try {
-                const response = await fetch('/api/get-fixtures');
+                const response = await fetch(`/api/get-fixtures?date=${dateVal}&leagues=${selectedLeagues.join(',')}&limit=${count}`);
                 const data = await response.json();
                 
                 if(data.error) {
@@ -207,28 +207,21 @@
                     return;
                 }
 
-                currentFixtures = (data.fixtures || []).slice(0, count).map((f, i) => ({
-                    ...f,
-                    oddsA: +(Math.random() * 1.5 + 1.3).toFixed(2),
-                    oddsB: +(Math.random() * 2.0 + 1.5).toFixed(2),
-                    confidence: ['High', 'Medium', 'High'][i % 3],
-                    analysis: `Recent form metrics indicate solid competitive advantage for ${f.homeTeam}.`
-                }));
-
+                currentFixtures = data.fixtures || [];
                 slipSelections = [];
                 renderFixtures();
                 updateAccaSlip();
             } catch (err) {
-                container.innerHTML = `<div class="glass-panel p-6 text-red-400 text-center">Failed to fetch fixtures.</div>`;
+                container.innerHTML = `<div class="glass-panel p-6 text-red-400 text-center">Failed to fetch best choice fixtures.</div>`;
             }
         }
 
         function renderFixtures() {
             const container = document.getElementById('fixtures-container');
-            document.getElementById('fixture-meta').innerText = `${currentFixtures.length} matches displayed`;
+            document.getElementById('fixture-meta').innerText = `${currentFixtures.length} curated picks`;
 
             if(currentFixtures.length === 0) {
-                container.innerHTML = `<div class="glass-panel p-8 text-center text-slate-400">No matches found for current filters.</div>`;
+                container.innerHTML = `<div class="glass-panel p-8 text-center text-slate-400">No high-confidence matches found for this date in selected leagues. Try another date!</div>`;
                 return;
             }
 
@@ -237,10 +230,13 @@
                 const isSelectedB = slipSelections.some(s => s.fixtureIndex === index && s.pick === 'B');
                 
                 return `
-                    <div class="glass-panel p-5 rounded-2xl space-y-4">
+                    <div class="glass-panel p-5 rounded-2xl space-y-4 border ${f.confidence === 'High' ? 'border-emerald-500/30' : 'border-slate-800'}">
                         <div class="flex items-center justify-between text-xs text-slate-400 border-b border-slate-800 pb-2">
-                            <span class="text-cyan-400 font-semibold uppercase"><i class="fa-solid fa-trophy mr-1"></i> ${f.league} &bull; ${f.country}</span>
-                            <span><i class="fa-regular fa-clock mr-1"></i> ${f.time}</span>
+                            <span class="text-cyan-400 font-semibold uppercase"><i class="fa-solid fa-trophy mr-1"></i> ${f.league}</span>
+                            <span class="flex items-center gap-2">
+                                <span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 font-bold text-[10px]">Value: ${f.confidence}</span>
+                                <span><i class="fa-regular fa-clock mr-1"></i> ${f.time}</span>
+                            </span>
                         </div>
                         <div class="grid grid-cols-1 md:grid-cols-3 items-center gap-4">
                             <div class="md:col-span-1">
@@ -250,18 +246,18 @@
                             </div>
                             <div class="md:col-span-2 grid grid-cols-2 gap-2">
                                 <button onclick="toggleSelection(${index}, 'A', ${f.oddsA})" class="p-3 rounded-xl border text-center transition ${isSelectedA ? 'border-emerald-500 bg-emerald-500/20 text-emerald-300' : 'border-slate-700 bg-dark-700/40 text-slate-300 hover:border-slate-600'}">
-                                    <div class="text-xs text-slate-400 truncate">${f.homeTeam}</div>
+                                    <div class="text-xs text-slate-400 truncate">Pick: ${f.homeTeam}</div>
                                     <div class="text-sm font-extrabold text-emerald-400">${f.oddsA}</div>
                                 </button>
                                 <button onclick="toggleSelection(${index}, 'B', ${f.oddsB})" class="p-3 rounded-xl border text-center transition ${isSelectedB ? 'border-emerald-500 bg-emerald-500/20 text-emerald-300' : 'border-slate-700 bg-dark-700/40 text-slate-300 hover:border-slate-600'}">
-                                    <div class="text-xs text-slate-400 truncate">${f.awayTeam}</div>
+                                    <div class="text-xs text-slate-400 truncate">Pick: ${f.awayTeam}</div>
                                     <div class="text-sm font-extrabold text-emerald-400">${f.oddsB}</div>
                                 </button>
                             </div>
                         </div>
                         <div class="bg-dark-900/60 p-3 rounded-xl flex items-start gap-2.5 border border-slate-800 text-xs">
                             <i class="fa-solid fa-brain text-cyan-400 mt-0.5"></i>
-                            <div><span class="font-semibold text-slate-300">Oracle Insight (${f.confidence}):</span> <span class="text-slate-400">${f.analysis}</span></div>
+                            <div><span class="font-semibold text-slate-300">Oracle Recommendation:</span> <span class="text-slate-400">${f.analysis}</span></div>
                         </div>
                     </div>
                 `;
@@ -288,7 +284,7 @@
         }
 
         function autoBuildBestAcca() {
-            if (currentFixtures.length === 0) { alert("Load matches first!"); return; }
+            if (currentFixtures.length === 0) { alert("Load choices first!"); return; }
             slipSelections = [];
             currentFixtures.forEach((f, index) => {
                 slipSelections.push({ fixtureIndex: index, pick: 'A', odds: f.oddsA });
@@ -297,7 +293,13 @@
             updateAccaSlip();
         }
 
-        renderSportsGrid();
+        // Initialize checkboxes
+        document.getElementById('sports-grid').innerHTML = `
+            <label class="flex items-center gap-2 p-2 rounded-xl border border-emerald-500 bg-emerald-500/10 text-emerald-400 text-xs font-medium cursor-pointer">
+                <input type="checkbox" checked disabled class="accent-emerald-500"> Football (Soccer)
+            </label>
+        `;
+        renderLeagues();
     </script>
 </body>
 </html>
