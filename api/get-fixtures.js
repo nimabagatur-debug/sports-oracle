@@ -7,23 +7,22 @@ export default async function handler(req, res) {
 
   const urlParams = new URL(req.url, `https://${req.headers.host}`).searchParams;
   const hoursWindow = parseInt(urlParams.get('hours')) || 24;
-  const leagues = urlParams.get('leagues') || 'Premier League, La Liga, Serie A, Champions League';
-  const limit = parseInt(urlParams.get('limit')) || 5;
   const sport = urlParams.get('sport') || 'football';
+  const limit = 3; // Strictly capped to 3 results as requested
 
   try {
-    const prompt = `Generate ${limit} real, upcoming ${sport} matches for these tournaments: [${leagues}] scheduled within the next ${hoursWindow} hours. 
-    You MUST respond with ONLY a valid raw JSON array and nothing else. No markdown blocks, no backticks, no introduction, no explanation. The array must contain objects with these exact keys:
-    - "homeTeam": string
-    - "awayTeam": string
-    - "league": string
-    - "country": string
-    - "time": string
-    - "oddsA": number
-    - "oddsB": number
-    - "bookmaker": string
-    - "confidence": string
-    - "analysis": string`;
+    const prompt = `Act as an expert sports analytics oracle. Generate exactly ${limit} real, upcoming ${sport} matches scheduled within the next ${hoursWindow} hours. 
+    You MUST respond with ONLY a valid raw JSON array and nothing else (no markdown blocks like \`\`\`json, no backticks, no introduction text). The array must contain objects with these exact keys:
+    - "homeTeam": string (team name)
+    - "awayTeam": string (team name)
+    - "league": string (league or tournament name)
+    - "country": string (country name)
+    - "time": string (kickoff time or hours from now)
+    - "oddsA": number (realistic decimal odds for home win, e.g. 1.75)
+    - "oddsB": number (realistic decimal odds for away win, e.g. 2.10)
+    - "bookmaker": string (e.g. "Bet365", "DraftKings")
+    - "confidence": string ("High" or "Medium")
+    - "analysis": string (short tactical analysis sentence)`;
 
     const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${geminiKey}`, {
       method: 'POST',
@@ -49,7 +48,7 @@ export default async function handler(req, res) {
       return res.status(500).json({ error: "Empty response received from AI model." });
     }
 
-    // Clean up any potential markdown text wrapping safely
+    // Clean up potential markdown formatting safely
     let cleanJsonStr = candidateText.trim();
     if (cleanJsonStr.startsWith("```json")) {
       cleanJsonStr = cleanJsonStr.replace(/^```json/, "").replace(/```$/, "").trim();
