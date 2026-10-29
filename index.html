@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live AI Sports Oracle</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen p-6 font-sans">
+    <div class="max-w-4xl mx-auto space-y-6">
+        <header class="text-center space-y-2">
+            <h1 class="text-3xl font-extrabold bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent">Live AI Sports Oracle</h1>
+            <p class="text-xs text-slate-400">Powered by Real API-Football Data & Gemini AI</p>
+        </header>
+
+        <div class="bg-slate-900 border border-slate-800 p-6 rounded-2xl text-center shadow-xl">
+            <button onclick="fetchLiveFixtures()" id="load-btn" class="px-6 py-3 bg-gradient-to-r from-emerald-500 to-cyan-500 text-slate-950 font-bold rounded-xl shadow-lg hover:opacity-90 transition">
+                <i class="fa-solid fa-bolt mr-2"></i> Load Today's Real Matches & AI Odds
+            </button>
+        </div>
+
+        <div id="results" class="space-y-4">
+            <div class="text-center text-slate-500 py-12">Click the button above to pull real live matches from the database.</div>
+        </div>
+    </div>
+
+    <script>
+        async function fetchLiveFixtures() {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = `<div class="text-center text-slate-400 py-8 animate-pulse"><i class="fa-solid fa-spinner fa-spin mr-2"></i> Fetching live fixtures from API-Football...</div>`;
+            
+            try {
+                const response = await fetch('/api/get-fixtures');
+                const data = await response.json();
+                
+                if(data.error) {
+                    resultsDiv.innerHTML = `<div class="bg-red-500/10 border border-red-500/30 text-red-400 p-4 rounded-xl text-center">Error: ${data.error}</div>`;
+                    return;
+                }
+
+                if(!data.fixtures || data.fixtures.length === 0) {
+                    resultsDiv.innerHTML = `<div class="text-center text-slate-400 py-8">No matches found scheduled for today. Try again tomorrow!</div>`;
+                    return;
+                }
+
+                resultsDiv.innerHTML = data.fixtures.map(f => `
+                    <div class="bg-slate-900 border border-slate-800 p-5 rounded-xl flex flex-col md:flex-row justify-between items-center gap-4">
+                        <div class="space-y-1 text-center md:text-left">
+                            <span class="text-xs text-cyan-400 font-semibold uppercase tracking-wider"><i class="fa-solid fa-trophy mr-1"></i> ${f.league} &bull; ${f.country}</span>
+                            <h3 class="font-bold text-lg text-slate-100">${f.homeTeam} vs ${f.awayTeam}</h3>
+                            <p class="text-xs text-slate-400">Kickoff: ${f.time}</p>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <div class="text-right">
+                                <span class="text-[10px] text-slate-500 block">Status</span>
+                                <span class="px-3 py-1 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 rounded-lg text-xs font-bold">${f.status}</span>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (err) {
+                resultsDiv.innerHTML = `<div class="bg-red-500/10 border border-red-500/30 text-red-400 p-4 rounded-xl text-center">Failed to load matches from server.</div>`;
+            }
+        }
+    </script>
+</body>
+</html>
