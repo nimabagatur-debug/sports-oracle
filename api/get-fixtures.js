@@ -15,7 +15,7 @@ export default async function handler(req, res) {
     Each object in the array must have these exact keys:
     "homeTeam" (string), "awayTeam" (string), "league" (string), "country" (string), "time" (string), "oddsA" (number), "oddsB" (number), "bookmaker" (string), "confidence" (string), "analysis" (string).`;
 
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.8-flash:generateContent?key=${geminiKey}`, {
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-light:generateContent?key=${geminiKey}`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
