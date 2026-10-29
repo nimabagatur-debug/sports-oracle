@@ -3,39 +3,148 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sports Oracle AI | Elite Predictions</title>
+    <title>Simple Sports Oracle</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    <style>
-        /* Custom scrollbar and animations */
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: #020617; }
-        ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #334155; }
-        .glass-panel { background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid rgba(51, 65, 85, 0.5); }
-        .odds-btn { transition: all 0.2s ease; }
-        .odds-btn:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(6, 182, 212, 0.2); border-color: #06b6d4; }
-    </style>
 </head>
-<body class="bg-[#020617] text-slate-200 min-h-screen flex flex-col bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900 via-[#020617] to-[#020617]">
+<body class="bg-slate-950 text-slate-200 min-h-screen font-sans p-4 md:p-8">
 
-    <!-- Header -->
-    <header class="glass-panel sticky top-0 z-50 border-b border-slate-800/80">
-        <div class="max-w-6xl mx-auto px-6 py-4 flex justify-between items-center">
-            <div class="flex items-center gap-3">
-                <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-cyan-400 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/20">
-                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
-                </div>
-                <div>
-                    <h1 class="text-xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-blue-500">Sports Oracle AI</h1>
-                    <p class="text-[10px] uppercase tracking-widest text-slate-500 font-semibold">Live Neural Predictions</p>
+    <div class="max-w-4xl mx-auto space-y-6">
+        
+        <!-- Header -->
+        <div class="text-center pb-6 border-b border-slate-800">
+            <h1 class="text-2xl font-bold text-cyan-400 tracking-wide">AI Sports Oracle</h1>
+            <p class="text-sm text-slate-500 mt-1">Smart Predictions & Market Analysis</p>
+        </div>
+
+        <!-- Controls Form -->
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+            
+            <!-- Sport Selection -->
+            <div>
+                <label class="block text-xs font-semibold text-slate-400 mb-2 uppercase">Sport</label>
+                <select id="sport-select" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-sm text-slate-200 focus:border-cyan-500 outline-none">
+                    <option value="Football">⚽ Football (Soccer)</option>
+                    <option value="Basketball">🏀 Basketball</option>
+                    <option value="Tennis">🎾 Tennis</option>
+                    <option value="American Football">🏈 American Football</option>
+                    <option value="Ice Hockey">🏒 Ice Hockey</option>
+                    <option value="Baseball">⚾ Baseball</option>
+                </select>
+            </div>
+
+            <!-- Market Type -->
+            <div>
+                <label class="block text-xs font-semibold text-slate-400 mb-2 uppercase">Prediction Market</label>
+                <select id="market-select" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-sm text-slate-200 focus:border-cyan-500 outline-none">
+                    <option value="Match Winner or Draw">🏆 Win / Draw</option>
+                    <option value="Handicap or Spread">⚖️ Handicap / Spread</option>
+                    <option value="Over or Under Total Points/Goals">📈 Over / Under</option>
+                </select>
+            </div>
+
+            <!-- Time Window -->
+            <div>
+                <label class="block text-xs font-semibold text-slate-400 mb-2 uppercase">Time Window</label>
+                <div class="flex gap-2">
+                    <button onclick="setTime(12)" id="btn-12h" class="flex-1 py-2 rounded-lg border border-slate-700 bg-slate-950 text-slate-400 text-sm transition time-btn">Next 12h</button>
+                    <button onclick="setTime(24)" id="btn-24h" class="flex-1 py-2 rounded-lg border border-cyan-500 bg-cyan-900/30 text-cyan-400 text-sm transition time-btn font-bold">Next 24h</button>
                 </div>
             </div>
-            <div class="flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20">
-                <span class="relative flex h-2 w-2"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span><span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span></span>
-                <span class="text-xs font-medium text-emerald-400">AI Online</span>
+
+            <!-- Result Count -->
+            <div>
+                <label class="block text-xs font-semibold text-slate-400 mb-2 uppercase">Number of Picks</label>
+                <div class="flex gap-2">
+                    <button onclick="setCount(3)" id="btn-3" class="flex-1 py-2 rounded-lg border border-cyan-500 bg-cyan-900/30 text-cyan-400 text-sm transition count-btn font-bold">3 Picks</button>
+                    <button onclick="setCount(6)" id="btn-6" class="flex-1 py-2 rounded-lg border border-slate-700 bg-slate-950 text-slate-400 text-sm transition count-btn">6 Picks</button>
+                    <button onclick="setCount(9)" id="btn-9" class="flex-1 py-2 rounded-lg border border-slate-700 bg-slate-950 text-slate-400 text-sm transition count-btn">9 Picks</button>
+                </div>
+            </div>
+
+            <!-- Submit Button -->
+            <div class="md:col-span-2 mt-2">
+                <button onclick="getPredictions()" id="submit-btn" class="w-full py-3.5 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold rounded-xl transition shadow-lg shadow-cyan-500/20">
+                    Generate Predictions
+                </button>
             </div>
         </div>
-    </header>
 
-    <!-- Main Content -->
-    <main class="flex-1 max-w-6xl w-full mx-auto p
+        <!-- Results Area -->
+        <div id="results" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <!-- Predictions will appear here -->
+        </div>
+
+    </div>
+
+    <script>
+        let selectedTime = 24;
+        let selectedCount = 3;
+
+        function setTime(hours) {
+            selectedTime = hours;
+            document.querySelectorAll('.time-btn').forEach(btn => {
+                btn.className = "flex-1 py-2 rounded-lg border border-slate-700 bg-slate-950 text-slate-400 text-sm transition time-btn";
+            });
+            const activeBtn = document.getElementById(`btn-${hours}h`);
+            activeBtn.className = "flex-1 py-2 rounded-lg border border-cyan-500 bg-cyan-900/30 text-cyan-400 text-sm transition time-btn font-bold";
+        }
+
+        function setCount(count) {
+            selectedCount = count;
+            document.querySelectorAll('.count-btn').forEach(btn => {
+                btn.className = "flex-1 py-2 rounded-lg border border-slate-700 bg-slate-950 text-slate-400 text-sm transition count-btn";
+            });
+            const activeBtn = document.getElementById(`btn-${count}`);
+            activeBtn.className = "flex-1 py-2 rounded-lg border border-cyan-500 bg-cyan-900/30 text-cyan-400 text-sm transition count-btn font-bold";
+        }
+
+        async function getPredictions() {
+            const sport = document.getElementById('sport-select').value;
+            const market = document.getElementById('market-select').value;
+            const btn = document.getElementById('submit-btn');
+            const resultsDiv = document.getElementById('results');
+
+            btn.disabled = true;
+            btn.innerText = "Analyzing Markets...";
+            resultsDiv.innerHTML = `<div class="col-span-full text-center py-10 text-cyan-500 animate-pulse">Querying AI for ${selectedCount} ${market} picks...</div>`;
+
+            try {
+                const response = await fetch(`/api/get-fixtures?sport=${encodeURIComponent(sport)}&market=${encodeURIComponent(market)}&hours=${selectedTime}&limit=${selectedCount}`);
+                const data = await response.json();
+
+                if (data.error) throw new Error(data.error);
+
+                if (!data.fixtures || data.fixtures.length === 0) {
+                    resultsDiv.innerHTML = `<div class="col-span-full text-center py-10 text-slate-400">No predictions found for this criteria.</div>`;
+                    return;
+                }
+
+                resultsDiv.innerHTML = data.fixtures.map(item => `
+                    <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 hover:border-slate-700 transition flex flex-col justify-between">
+                        <div>
+                            <div class="text-xs font-semibold text-slate-500 mb-2 uppercase">${item.league} • ${item.time}</div>
+                            <div class="font-bold text-slate-200 text-sm mb-4">${item.matchup}</div>
+                        </div>
+                        
+                        <div class="bg-slate-950 rounded-lg p-3 border border-slate-800">
+                            <div class="text-xs text-slate-400 mb-1">Recommended Pick</div>
+                            <div class="flex justify-between items-end">
+                                <span class="text-cyan-400 font-bold">${item.pick}</span>
+                                <span class="text-slate-200 font-semibold text-sm">Odds: ${item.odds}</span>
+                            </div>
+                        </div>
+                        
+                        <p class="text-xs text-slate-400 mt-3 leading-relaxed">💡 ${item.analysis}</p>
+                    </div>
+                `).join('');
+
+            } catch (err) {
+                resultsDiv.innerHTML = `<div class="col-span-full text-center py-10 text-red-400">Error: ${err.message}</div>`;
+            } finally {
+                btn.disabled = false;
+                btn.innerText = "Generate Predictions";
+            }
+        }
+    </script>
+</body>
+</html>
