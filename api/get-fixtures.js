@@ -19,8 +19,8 @@ export default async function handler(req, res) {
     Provide exactly ${limit} upcoming ${sport} matches scheduled globally within the next ${hoursWindow} hours.
     For EACH match, provide a specific prediction exclusively for the "${market}" betting market.`;
 
-    // FIXED: Changed to 'gemini-1.5-flash-latest' to resolve the routing/alias error
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${geminiKey}`, {
+    // UPDATED: Using the Gemini 3.1 Pro model endpoint
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-pro-preview:generateContent?key=${geminiKey}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
