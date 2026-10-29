@@ -70,14 +70,7 @@ export default async function handler(req, res) {
       return res.status(200).json({ fixtures });
     }
 
-    // Clean scheduled fallback if no matches fall in the exact hour window for those specific leagues right now
-    const genericFallback = [
-      { home: "Manchester City", away: "Liverpool", league: "Premier League" },
-      { home: "Atletico Madrid", away: "Barcelona", league: "Primera Division" },
-      { home: "Juventus", away: "Napoli", league: "Serie A" },
-      { home: "RB Leipzig", away: "Bayer Leverkusen", league: "1. Bundesliga" },
-      { home: "Lyon", away: "Marseille", league: "Ligue 1" }
-    ];
+
 
     const fixtures = genericFallback.slice(0, limit).map((item, index) => {
       const bookmaker = bookmakersList[index % bookmakersList.length];
