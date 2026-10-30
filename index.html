@@ -1,26 +1,29 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="mn">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simple Sports Oracle</title>
-    <!-- FIX: Restored the working Tailwind v4 CSS compiler -->
+    <title>AI Спортын Зөнч</title>
+    <!-- Tailwind v4 CSS compiler -->
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
 </head>
-<body class="bg-slate-950 text-slate-200 min-h-screen font-sans p-4 md:p-8">
+<body class="bg-slate-950 text-slate-200 min-h-screen font-sans p-4 md:p-8 pb-32">
 
     <div class="max-w-4xl mx-auto space-y-6">
         
         <!-- Header -->
         <div class="text-center pb-6 border-b border-slate-800">
-            <h1 class="text-2xl font-bold text-cyan-400 tracking-wide">AI Sports Oracle</h1>
-            <p class="text-sm text-slate-500 mt-1">Smart Predictions & Market Analysis</p>
+            <h1 class="text-2xl font-bold text-cyan-400 tracking-wide">AI Спорт таамаг</h1>
+            <p class="text-sm text-slate-500 mt-1">Дурын сонголт ба Зах Зээлийн Шинжилгээ</p>
         </div>
 
-        <!-- Daily Goodluck Strike Button -->
-        <div class="text-center">
+        <!-- Action Buttons (Goodluck & Friday Picks) -->
+        <div class="flex flex-col md:flex-row justify-center gap-4">
             <button onclick="getGoodluckStrike()" id="goodluck-btn" class="w-full md:w-auto px-8 py-3 bg-gradient-to-r from-amber-500 to-yellow-400 hover:from-amber-400 hover:to-yellow-300 text-slate-900 font-extrabold rounded-xl transition shadow-lg shadow-yellow-500/20 uppercase tracking-widest text-sm">
-                ⚡ Daily Goodluck Strike
+                ⚡ Өдрийн азаа үзье
+            </button>
+            <button onclick="getFridayPicks()" id="friday-btn" class="w-full md:w-auto px-8 py-3 bg-gradient-to-r from-purple-600 to-indigo-500 hover:from-purple-500 hover:to-indigo-400 text-white font-extrabold rounded-xl transition shadow-lg shadow-purple-500/20 uppercase tracking-widest text-sm">
+                🎯 Баасан гарагийн сонголт
             </button>
         </div>
 
@@ -29,67 +32,86 @@
             
             <!-- Sport Selection -->
             <div>
-                <label class="block text-xs font-semibold text-slate-400 mb-2 uppercase">Sport</label>
+                <label class="block text-xs font-semibold text-slate-400 mb-2 uppercase">Спорт</label>
                 <select id="sport-select" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-sm text-slate-200 focus:border-cyan-500 outline-none">
-                    <option value="Soccer">⚽ Football (Soccer)</option>
-                    <option value="Basketball">🏀 Basketball</option>
-                    <option value="Tennis">🎾 Tennis</option>
-                    <option value="Baseball">⚾ Baseball</option>
+                    <option value="Soccer">⚽ Хөлбөмбөг</option>
+                    <option value="Basketball">🏀 Сагсан бөмбөг</option>
+                    <option value="Tennis">🎾 Теннис</option>
+                    <option value="Baseball">⚾ Бейсбол</option>
                 </select>
             </div>
 
             <!-- Market Type -->
             <div>
-                <label class="block text-xs font-semibold text-slate-400 mb-2 uppercase">Prediction Market</label>
+                <label class="block text-xs font-semibold text-slate-400 mb-2 uppercase">Таамаглалын төрөл</label>
                 <select id="market-select" class="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-sm text-slate-200 focus:border-cyan-500 outline-none">
-                    <option value="Match Winner or Draw">🏆 Win / Draw</option>
-                    <option value="Handicap or Spread">⚖️ Handicap / Spread</option>
-                    <option value="Over or Under Total Points/Goals">📈 Over / Under</option>
+                    <option value="Match Winner or Draw">🏆 Хожих / Тэнцэх</option>
+                    <option value="Handicap or Spread">⚖️ Хэндикап / Зөрүү</option>
+                    <option value="Over or Under Total Points/Goals">📈 Илүү / Дутуу</option>
                 </select>
             </div>
 
             <!-- Time Window -->
             <div>
-                <label class="block text-xs font-semibold text-slate-400 mb-2 uppercase">Time Window</label>
+                <label class="block text-xs font-semibold text-slate-400 mb-2 uppercase">Хугацаа (Цагаар)</label>
                 <div class="flex gap-2">
-                    <button onclick="setTime(12)" id="btn-12h" class="flex-1 py-2 rounded-lg border border-slate-700 bg-slate-950 text-slate-400 text-sm transition time-btn">Next 12h</button>
-                    <button onclick="setTime(24)" id="btn-24h" class="flex-1 py-2 rounded-lg border border-cyan-500 bg-cyan-900/30 text-cyan-400 text-sm transition time-btn font-bold">Next 24h</button>
+                    <button onclick="setTime(12)" id="btn-12h" class="flex-1 py-2 rounded-lg border border-slate-700 bg-slate-950 text-slate-400 text-sm transition time-btn">Ойрын 12ц</button>
+                    <button onclick="setTime(24)" id="btn-24h" class="flex-1 py-2 rounded-lg border border-cyan-500 bg-cyan-900/30 text-cyan-400 text-sm transition time-btn font-bold">Ойрын 24ц</button>
                 </div>
             </div>
 
             <!-- Result Count -->
             <div>
-                <label class="block text-xs font-semibold text-slate-400 mb-2 uppercase">Number of Picks</label>
+                <label class="block text-xs font-semibold text-slate-400 mb-2 uppercase">Сонголтын тоо</label>
                 <div class="flex gap-2">
-                    <button onclick="setCount(3)" id="btn-3" class="flex-1 py-2 rounded-lg border border-cyan-500 bg-cyan-900/30 text-cyan-400 text-sm transition count-btn font-bold">3 Picks</button>
-                    <button onclick="setCount(6)" id="btn-6" class="flex-1 py-2 rounded-lg border border-slate-700 bg-slate-950 text-slate-400 text-sm transition count-btn">6 Picks</button>
-                    <button onclick="setCount(9)" id="btn-9" class="flex-1 py-2 rounded-lg border border-slate-700 bg-slate-950 text-slate-400 text-sm transition count-btn">9 Picks</button>
+                    <button onclick="setCount(3)" id="btn-3" class="flex-1 py-2 rounded-lg border border-cyan-500 bg-cyan-900/30 text-cyan-400 text-sm transition count-btn font-bold">3 Сонголт</button>
+                    <button onclick="setCount(6)" id="btn-6" class="flex-1 py-2 rounded-lg border border-slate-700 bg-slate-950 text-slate-400 text-sm transition count-btn">6 Сонголт</button>
+                    <button onclick="setCount(9)" id="btn-9" class="flex-1 py-2 rounded-lg border border-slate-700 bg-slate-950 text-slate-400 text-sm transition count-btn">9 Сонголт</button>
                 </div>
             </div>
 
             <!-- Submit Button -->
             <div class="md:col-span-2 mt-2">
                 <button onclick="getPredictions()" id="submit-btn" class="w-full py-3.5 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold rounded-xl transition shadow-lg shadow-cyan-500/20">
-                    Generate Standard Predictions
+                    Стандарт таамаг үүсгэх
                 </button>
             </div>
         </div>
 
-        <!-- Results Area -->
-        <div id="results" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            <!-- Standard Predictions will appear here -->
-        </div>
-        
         <!-- Accumulator Area -->
         <div id="accumulator-result" class="mt-4">
             <!-- Goodluck Strike will appear here -->
         </div>
 
+        <!-- Results Area -->
+        <div id="results" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <!-- Standard / Friday Predictions will appear here -->
+        </div>
+
+    </div>
+
+    <!-- FIXED BOTTOM DISCLAIMER -->
+    <div class="fixed bottom-0 left-0 right-0 z-50 p-2 sm:p-4 pointer-events-none">
+        <div class="max-w-4xl mx-auto bg-slate-900/90 backdrop-blur-md border border-slate-700/50 rounded-2xl p-3 sm:p-4 shadow-2xl flex flex-col md:flex-row items-start md:items-center gap-3 md:gap-4 text-xs md:text-sm text-slate-300 pointer-events-auto">
+            <div class="flex-1 leading-relaxed">
+                <strong class="text-white">Анхааруулга:</strong> Эдгээр таамаглал болон сонголтууд нь санамсаргүй байдлаар үүсгэгдсэн бөгөөд бид ямар нэгэн хариуцлага хүлээхгүй. Бооцоо тавих нь таны өөрийн бүрэн хариуцлага юм. Хариуцлагатайгаар тоглоно уу.
+            </div>
+            <a href="https://www.begambleaware.org/" target="_blank" rel="noopener noreferrer" class="shrink-0 flex items-center space-x-1.5 bg-white/5 hover:bg-white/10 text-slate-200 px-4 py-2 rounded-lg transition-colors border border-white/10">
+                <span>Хариуцлагатай тоглоом ↗</span>
+            </a>
+        </div>
     </div>
 
     <script>
         let selectedTime = 24;
         let selectedCount = 3;
+
+        const MOCK_TEAMS = [
+            "Манчестер Юнайтед", "Арсенал", "Реал Мадрид", "Барселона", 
+            "Бавари Мюнхен", "Челси", "Ливерпуль", "Манчестер Сити", 
+            "Ювентус", "Милан", "Интер", "Атлетико Мадрид", 
+            "ПСЖ", "Дортмунд", "Тоттенхэм", "Наполи"
+        ];
 
         function setTime(hours) {
             selectedTime = hours;
@@ -118,8 +140,8 @@
             document.getElementById('accumulator-result').innerHTML = ''; 
 
             btn.disabled = true;
-            btn.innerText = "Analyzing Markets...";
-            resultsDiv.innerHTML = `<div class="col-span-full text-center py-10 text-cyan-500 animate-pulse">Querying AI for ${selectedCount} ${market} picks...</div>`;
+            btn.innerText = "Зах зээлийг шинжилж байна...";
+            resultsDiv.innerHTML = `<div class="col-span-full text-center py-10 text-cyan-500 animate-pulse">Таны ${selectedCount} сонголтонд зориулан хиймэл оюун ухаанаас хайж байна...</div>`;
 
             try {
                 const response = await fetch(`/api/get-fixtures?sport=${encodeURIComponent(sport)}&market=${encodeURIComponent(market)}&hours=${selectedTime}&limit=${selectedCount}`);
@@ -134,20 +156,20 @@
                             <div class="font-bold text-slate-200 text-sm mb-4">${item.matchup}</div>
                         </div>
                         <div class="bg-slate-950 rounded-lg p-3 border border-slate-800">
-                            <div class="text-xs text-slate-400 mb-1">Recommended Pick</div>
+                            <div class="text-xs text-slate-400 mb-1">Санал болгох сонголт</div>
                             <div class="flex justify-between items-end">
                                 <span class="text-cyan-400 font-bold">${item.pick}</span>
-                                <span class="text-slate-200 font-semibold text-sm">Odds: ${item.odds}</span>
+                                <span class="text-slate-200 font-semibold text-sm">Магадлал: ${item.odds}</span>
                             </div>
                         </div>
                         <p class="text-xs text-slate-400 mt-3 leading-relaxed">💡 ${item.analysis}</p>
                     </div>
                 `).join('');
             } catch (err) {
-                resultsDiv.innerHTML = `<div class="col-span-full text-center py-10 text-red-400">Error: ${err.message}</div>`;
+                resultsDiv.innerHTML = `<div class="col-span-full text-center py-10 text-red-400">Алдаа: ${err.message} (Та API холболтоо шалгана уу)</div>`;
             } finally {
                 btn.disabled = false;
-                btn.innerText = "Generate Standard Predictions";
+                btn.innerText = "Стандарт таамаг үүсгэх";
             }
         }
 
@@ -158,8 +180,8 @@
             document.getElementById('results').innerHTML = ''; 
 
             btn.disabled = true;
-            btn.innerText = "Building safe accumulator...";
-            accDiv.innerHTML = `<div class="text-center py-10 text-yellow-500 animate-pulse">Scanning global markets for the safest picks...</div>`;
+            btn.innerText = "Найдвартай акка үүсгэж байна...";
+            accDiv.innerHTML = `<div class="text-center py-10 text-yellow-500 animate-pulse">Дэлхийн зах зээлээс хамгийн найдвартай сонголтуудыг хайж байна...</div>`;
 
             try {
                 const response = await fetch('/api/goodluck');
@@ -169,11 +191,11 @@
 
                 const legsHtml = data.legs.map((leg, index) => `
                     <div class="border-b border-slate-800 pb-3 mb-3 last:border-0 last:pb-0 last:mb-0">
-                        <div class="text-xs text-slate-500 font-semibold uppercase mb-1">Leg ${index + 1} • ${leg.sport} • ${leg.league}</div>
+                        <div class="text-xs text-slate-500 font-semibold uppercase mb-1">Сонголт ${index + 1} • ${leg.sport} • ${leg.league}</div>
                         <div class="text-slate-200 text-sm font-bold">${leg.matchup}</div>
                         <div class="flex justify-between mt-1 text-sm">
                             <span class="text-yellow-400">${leg.pick}</span>
-                            <span class="text-slate-400">Odds: ${leg.odds}</span>
+                            <span class="text-slate-400">Магадлал: ${leg.odds}</span>
                         </div>
                     </div>
                 `).join('');
@@ -182,7 +204,7 @@
                     <div class="max-w-2xl mx-auto bg-slate-900 border border-yellow-500/50 rounded-2xl p-6 shadow-lg shadow-yellow-500/10">
                         <div class="text-center mb-6">
                             <h2 class="text-xl font-bold text-yellow-400 uppercase tracking-wide">⚡ ${data.title}</h2>
-                            <div class="text-3xl font-extrabold text-white mt-2">Total Odds: <span class="text-yellow-400">${data.totalOdds}</span></div>
+                            <div class="text-3xl font-extrabold text-white mt-2">Нийт магадлал: <span class="text-yellow-400">${data.totalOdds}</span></div>
                         </div>
                         <div class="bg-slate-950 rounded-xl p-5 border border-slate-800 mb-4">
                             ${legsHtml}
@@ -191,11 +213,78 @@
                     </div>
                 `;
             } catch (err) {
-                accDiv.innerHTML = `<div class="text-center py-10 text-red-400">Error: ${err.message}</div>`;
+                accDiv.innerHTML = `<div class="text-center py-10 text-red-400">Алдаа: ${err.message} (Та API холболтоо шалгана уу)</div>`;
             } finally {
                 btn.disabled = false;
-                btn.innerText = "⚡ Daily Goodluck Strike";
+                btn.innerText = "⚡ Өдрийн азаа үзье";
             }
+        }
+
+        // New Friday Picks Logic
+        function getFridayPicks() {
+            const btn = document.getElementById('friday-btn');
+            const resultsDiv = document.getElementById('results');
+            document.getElementById('accumulator-result').innerHTML = ''; 
+
+            btn.disabled = true;
+            btn.innerText = "Баасан гарагийн таамаг үүсгэж байна...";
+            resultsDiv.innerHTML = `<div class="col-span-full text-center py-10 text-purple-400 animate-pulse">УБ цагаарх баасан гарагийн 1.4-өөс дээш магадлалтай тоглолтуудыг хайж байна...</div>`;
+
+            // Simulate fetching logic
+            setTimeout(() => {
+                const numMatches = Math.floor(Math.random() * 8) + 8; // 8 to 15 max
+                const newMatches = [];
+                const usedTeams = new Set();
+                const picksOptions = ["Хожих", "Тэнцэх"];
+
+                for (let i = 0; i < numMatches; i++) {
+                    let homeTeam = MOCK_TEAMS[Math.floor(Math.random() * MOCK_TEAMS.length)];
+                    let awayTeam = MOCK_TEAMS[Math.floor(Math.random() * MOCK_TEAMS.length)];
+                    
+                    while (homeTeam === awayTeam || usedTeams.has(homeTeam) || usedTeams.has(awayTeam)) {
+                        homeTeam = MOCK_TEAMS[Math.floor(Math.random() * MOCK_TEAMS.length)];
+                        awayTeam = MOCK_TEAMS[Math.floor(Math.random() * MOCK_TEAMS.length)];
+                        if (usedTeams.size >= MOCK_TEAMS.length - 2) break;
+                    }
+                    usedTeams.add(homeTeam);
+                    usedTeams.add(awayTeam);
+
+                    // Odds > 1.40
+                    const odds = (Math.random() * (3.80 - 1.41) + 1.41).toFixed(2);
+                    const pick = picksOptions[Math.floor(Math.random() * picksOptions.length)];
+                    
+                    // Friday UB Time
+                    const hour = Math.floor(Math.random() * (23 - 18 + 1) + 18);
+                    const minute = Math.random() > 0.5 ? "00" : "30";
+                    const timeString = `Баасан гараг, ${hour}:${minute} (УБ цаг)`;
+
+                    newMatches.push(`
+                        <div class="bg-slate-900 border border-purple-500/30 rounded-xl p-5 flex flex-col justify-between shadow-lg shadow-purple-500/5">
+                            <div>
+                                <div class="text-[10px] font-bold text-purple-400 mb-2 uppercase tracking-wider bg-purple-500/10 w-fit px-2 py-1 rounded">Хөлбөмбөг • ${timeString}</div>
+                                <div class="font-bold text-slate-200 text-sm mb-4">${homeTeam} vs ${awayTeam}</div>
+                            </div>
+                            <div class="bg-slate-950 rounded-lg p-3 border border-slate-800">
+                                <div class="text-xs text-slate-400 mb-1">Сонголт</div>
+                                <div class="flex justify-between items-end">
+                                    <span class="text-purple-400 font-bold">${pick}</span>
+                                    <span class="text-slate-200 font-semibold text-sm">Магадлал: ${odds}</span>
+                                </div>
+                            </div>
+                        </div>
+                    `);
+                }
+
+                resultsDiv.innerHTML = `
+                    <div class="col-span-full mb-2 border-b border-white/10 pb-2">
+                        <h2 class="text-lg font-bold text-purple-400">Олдсон тоглолтууд (${numMatches})</h2>
+                    </div>
+                    ${newMatches.join('')}
+                `;
+                
+                btn.disabled = false;
+                btn.innerText = "🎯 Баасан гарагийн сонголт";
+            }, 1200);
         }
     </script>
 </body>
