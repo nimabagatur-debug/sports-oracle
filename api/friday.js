@@ -4,9 +4,9 @@ export default async function handler(req, res) {
     }
 
     // Vercel Environment Variables дотор тохируулсан API-SPORTS түлхүүр
-    const API_KEY = process.env.API_SPORTS_KEY; 
+    const API_KEY = process.env.GEMINI_API_KEY; 
     if (!API_KEY) {
-        return res.status(500).json({ error: 'API_SPORTS_KEY тохируулагдаагүй байна.' });
+        return res.status(500).json({ error: 'GEMINI_API_KEY тохируулагдаагүй байна.' });
     }
 
     try {
