@@ -1,4 +1,4 @@
-// api/friday.js
+glis// api/friday.js
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   const geminiKey = process.env.GEMINI_API_KEY;
@@ -17,8 +17,8 @@ export default async function handler(req, res) {
     1. Find up to 15 highly probable matches happening on Friday.
     2. The betting pick MUST be a "Win" or "Draw" (1X) market only. No over/under or handicaps.
     3. The individual decimal odds for EACH pick MUST be strictly higher than 1.40 (e.g., 1.45, 1.55, 1.80).
-    4. Choose matches with high win probabilities based on your analysis.
-    5. Translate all output (team names, leagues, analysis) into the MONGOLIAN language.
+    4. Choose matches with high win probabilities based on your analysis
+    
 
     Return ONLY valid JSON matching the schema, no markdown blocks.`;
 
@@ -39,9 +39,9 @@ export default async function handler(req, res) {
                 items: {
                   type: "OBJECT",
                   properties: {
-                    matchup: { type: "STRING", description: "Team A vs Team B (in Mongolian)" },
-                    league: { type: "STRING", description: "League or tournament name (in Mongolian)" },
-                    pick: { type: "STRING", description: "The recommended Win or Draw pick (in Mongolian)" },
+                    matchup: { type: "STRING", description: "Team A vs Team B (in English)" },
+                    league: { type: "STRING", description: "League or tournament name (in English)" },
+                    pick: { type: "STRING", description: "The recommended Win or Draw pick (in English)" },
                     odds: { type: "NUMBER", description: "Individual leg odds (must be > 1.40)" },
                     ubTime: { type: "STRING", description: "The match time in Ulaanbaatar time (e.g., Баасан гараг, 22:00)" }
                   },
